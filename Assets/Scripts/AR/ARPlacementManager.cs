@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using ARCircuitsLab.AssetLoading;
 using ARCircuitsLab.Events;
 
 namespace ARCircuitsLab.AR
@@ -17,7 +18,9 @@ namespace ARCircuitsLab.AR
         [SerializeField] private ARPlaneManager planeManager;
 
         [Header("Placement")]
-        [SerializeField] private GameObject benchPrefab;
+        [Tooltip("Gives us the bench prefab, loaded through Addressables.")]
+        [SerializeField] private AssetManager assetManager;
+        [SerializeField] private string benchAssetName = "Lab Bench";
         [SerializeField] private Transform previewIndicator;
         [Tooltip("Smallest surface (m²) we accept for the bench.")]
         [SerializeField] private float minPlaneArea = 0.1f;
@@ -63,6 +66,13 @@ namespace ARCircuitsLab.AR
         {
             if (State != PlacementState.ReadyToPlace) return;
 
+            GameObject benchPrefab = assetManager.GetPrefab(benchAssetName);
+            if (bench == null && benchPrefab == null)
+            {
+                Debug.LogWarning("[ARPlacementManager] Lab assets are still loading.");
+                return;
+            }
+
             // Create a new anchor so the bench stays fixed in the real world.
             var anchorObject = new GameObject("Bench Anchor");
             anchorObject.transform.SetPositionAndRotation(previewPose.position, FacingCamera(previewPose.position));
@@ -93,6 +103,22 @@ namespace ARCircuitsLab.AR
             SetPlaneDetection(true);
             SetState(PlacementState.Scanning);
             GameEvents.RaiseRepositionStarted();
+        }
+
+        /// <summary>Removes the bench and anchor (used when going back to the menu).</summary>
+        public void ResetPlacement()
+        {
+            if (bench != null) Destroy(bench);
+            if (currentAnchor != null) Destroy(currentAnchor.gameObject);
+            bench = null;
+            currentAnchor = null;
+            SetPlaneDetection(true);
+            SetState(PlacementState.Scanning);
+        }
+
+        private void OnDisable()
+        {
+            if (previewIndicator != null) previewIndicator.gameObject.SetActive(false);
         }
 
         private bool TryGetSurfaceAtScreenCentre(out Pose pose)

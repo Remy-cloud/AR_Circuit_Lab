@@ -11,6 +11,10 @@ using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using ARCircuitsLab.AR;
+using ARCircuitsLab.AssetLoading;
+using ARCircuitsLab.Audio;
+using ARCircuitsLab.Managers;
+using ARCircuitsLab.States;
 using ARCircuitsLab.UI;
 
 /// <summary>
@@ -42,26 +46,77 @@ public static class LabSceneBuilder
         var raycastManager = origin.gameObject.AddComponent<ARRaycastManager>();
         origin.gameObject.AddComponent<ARAnchorManager>();
 
-        // Placement manager + preview indicator.
+        // Managers (each one has a single job).
         var managers = new GameObject("Managers");
-        var placement = new GameObject("AR Placement Manager").AddComponent<ARPlacementManager>();
-        placement.transform.SetParent(managers.transform);
+        var assetManager = AddManager<AssetManager>(managers, "Asset Manager");
+        var dataManager = AddManager<DataManager>(managers, "Data Manager");
+        var audioManager = AddManager<AudioManager>(managers, "Audio Manager");
+        Wire(audioManager, "assetManager", assetManager);
+        var placement = AddManager<ARPlacementManager>(managers, "AR Placement Manager");
 
         GameObject indicator = (GameObject)PrefabUtility.InstantiatePrefab(CreateIndicatorPrefab());
         indicator.name = "Placement Indicator";
+        CreateBenchPrefab();
 
         var so = new SerializedObject(placement);
         so.FindProperty("raycastManager").objectReferenceValue = raycastManager;
         so.FindProperty("planeManager").objectReferenceValue = planeManager;
-        so.FindProperty("benchPrefab").objectReferenceValue = CreateBenchPrefab();
+        so.FindProperty("assetManager").objectReferenceValue = assetManager;
         so.FindProperty("previewIndicator").objectReferenceValue = indicator.transform;
         so.ApplyModifiedPropertiesWithoutUndo();
 
-        CreateSetupUI(placement);
+        var uiManager = AddManager<UIManager>(managers, "UI Manager");
+        var stateManager = AddManager<AppStateManager>(managers, "App State Manager");
+        var stSo = new SerializedObject(stateManager);
+        stSo.FindProperty("startState").enumValueIndex = (int)AppStateId.Menu;
+        stSo.FindProperty("assets").objectReferenceValue = assetManager;
+        stSo.FindProperty("placement").objectReferenceValue = placement;
+        stSo.FindProperty("ui").objectReferenceValue = uiManager;
+        stSo.FindProperty("data").objectReferenceValue = dataManager;
+        stSo.ApplyModifiedPropertiesWithoutUndo();
+
+        // All screens, then tell the UI Manager which screen belongs to which state.
+        LabUIBuilder.Screens ui = LabUIBuilder.Build(stateManager, placement);
+        var uiSo = new SerializedObject(uiManager);
+        var list = uiSo.FindProperty("screens");
+        var map = new (AppStateId, GameObject)[]
+        {
+            (AppStateId.Menu, ui.home), (AppStateId.Briefing, ui.briefing), (AppStateId.Setup, ui.setup),
+            (AppStateId.Simulation, ui.hud), (AppStateId.Paused, ui.hud), (AppStateId.Paused, ui.pause),
+            (AppStateId.Summary, ui.summary), (AppStateId.History, ui.history),
+        };
+        list.arraySize = map.Length;
+        for (int i = 0; i < map.Length; i++) SetScreen(list.GetArrayElementAtIndex(i), map[i].Item1, map[i].Item2);
+        uiSo.ApplyModifiedPropertiesWithoutUndo();
+        foreach (var m in map) m.Item2.SetActive(false);
+
+        AddressablesSetup.Setup();
 
         EditorSceneManager.SaveScene(scene, ScenePath);
         EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
         Debug.Log("[LabSceneBuilder] Lab scene created at " + ScenePath);
+    }
+
+    // ---------- helpers ----------
+
+    static T AddManager<T>(GameObject parent, string name) where T : Component
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent.transform);
+        return go.AddComponent<T>();
+    }
+
+    static void Wire(Object target, string field, Object value)
+    {
+        var so = new SerializedObject(target);
+        so.FindProperty(field).objectReferenceValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    static void SetScreen(SerializedProperty entry, AppStateId state, GameObject panel)
+    {
+        entry.FindPropertyRelative("state").enumValueIndex = (int)state;
+        entry.FindPropertyRelative("panel").objectReferenceValue = panel;
     }
 
     // ---------- scene objects ----------
@@ -173,79 +228,6 @@ public static class LabSceneBuilder
         mat.SetColor("_BaseColor", color);
         AssetDatabase.CreateAsset(mat, path);
         return mat;
-    }
-
-    // ---------- setup UI ----------
-
-    static void CreateSetupUI(ARPlacementManager placement)
-    {
-        new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
-
-        var canvasGo = new GameObject("UI Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        canvasGo.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
-        var scaler = canvasGo.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1080, 1920);
-        scaler.matchWidthOrHeight = 0.5f;
-
-        var panel = new GameObject("Setup Panel", typeof(RectTransform));
-        panel.transform.SetParent(canvasGo.transform, false);
-        Stretch(panel.GetComponent<RectTransform>());
-
-        // Instruction banner at the top.
-        var banner = new GameObject("Instruction Banner", typeof(Image));
-        banner.transform.SetParent(panel.transform, false);
-        banner.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.6f);
-        var br = banner.GetComponent<RectTransform>();
-        br.anchorMin = new Vector2(0.05f, 1f); br.anchorMax = new Vector2(0.95f, 1f);
-        br.pivot = new Vector2(0.5f, 1f);
-        br.anchoredPosition = new Vector2(0f, -120f);
-        br.sizeDelta = new Vector2(0f, 160f);
-
-        var textGo = TMP_DefaultControls.CreateText(new TMP_DefaultControls.Resources());
-        textGo.name = "Instruction Text";
-        textGo.transform.SetParent(banner.transform, false);
-        Stretch(textGo.GetComponent<RectTransform>());
-        var text = textGo.GetComponent<TextMeshProUGUI>();
-        text.text = "Move your phone slowly to scan the table";
-        text.fontSize = 44;
-        text.alignment = TextAlignmentOptions.Center;
-        text.color = Color.white;
-
-        Button place = CreateButton(panel.transform, "Place Button", "Place bench", new Color(0.1f, 0.45f, 0.9f));
-        Button move = CreateButton(panel.transform, "Reposition Button", "Move bench", new Color(0.3f, 0.3f, 0.3f));
-
-        var ui = panel.AddComponent<PlacementUI>();
-        var so = new SerializedObject(ui);
-        so.FindProperty("placementManager").objectReferenceValue = placement;
-        so.FindProperty("instructionText").objectReferenceValue = text;
-        so.FindProperty("placeButton").objectReferenceValue = place;
-        so.FindProperty("repositionButton").objectReferenceValue = move;
-        so.ApplyModifiedPropertiesWithoutUndo();
-    }
-
-    static Button CreateButton(Transform parent, string name, string label, Color color)
-    {
-        var res = new TMP_DefaultControls.Resources
-        {
-            standard = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd")
-        };
-        GameObject go = TMP_DefaultControls.CreateButton(res);
-        go.name = name;
-        go.transform.SetParent(parent, false);
-        go.GetComponent<Image>().color = color;
-
-        var rt = go.GetComponent<RectTransform>();
-        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
-        rt.pivot = new Vector2(0.5f, 0f);
-        rt.anchoredPosition = new Vector2(0f, 160f);
-        rt.sizeDelta = new Vector2(600f, 150f);
-
-        var tmp = go.GetComponentInChildren<TextMeshProUGUI>();
-        tmp.text = label;
-        tmp.fontSize = 48;
-        tmp.color = Color.white;
-        return go.GetComponent<Button>();
     }
 
     static void Stretch(RectTransform rt)
