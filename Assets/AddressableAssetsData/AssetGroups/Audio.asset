@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Audio
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Audio
+  m_GUID: e1e28248e0fc640aab97b8bf8430a792
+  m_SerializeEntries:
+  - m_GUID: 028c68269107d4328a17246f2814a471
+    m_Address: switch
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - audio
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5f19847df1ba140c790a42728fcc5a58
+    m_Address: warning
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - audio
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 67419d6e2162147ee9507277d95a27c7
+    m_Address: place
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - audio
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6dde93f0a1845492d8e6c3968a378083
+    m_Address: ui_click
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - audio
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8fba3eafad0d845409e79a34fa8d159a
+    m_Address: session_end
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - audio
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b881f7bc6f0724029aeb55cf08ad2eff
+    m_Address: task_complete
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - audio
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f0fd17cabec1f4e5b9b5c9697be0f35d
+    m_Address: connect
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - audio
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 331e7bb01e13547cf94fa141aa7df1da, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 5cbdd8fbc5c084ba5a9b5780de0b85cf, type: 2}
+    - {fileID: 11400000, guid: cd25eb6f11ebc415ca5f0edfa1d755f9, type: 2}
+    m_SchemaDisplayOrder:
+    - Audio_BundledAssetGroupSchema
+    - Audio_ContentUpdateGroupSchema
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1
