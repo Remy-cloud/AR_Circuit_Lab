@@ -7,50 +7,54 @@ using ARCircuitsLab.Events;
 namespace ARCircuitsLab.UI
 {
     /// <summary>
-    /// Shows scanning feedback, placement instructions and placement confirmation.
-    /// It only listens to events, so it never controls AR logic directly.
+    /// Setup screen: plane detection feedback, placement instructions and
+    /// placement confirmation. It reacts to placement events only.
     /// </summary>
-    public class PlacementUI : MonoBehaviour
+    public class PlacementUI : ViewBase
     {
         [SerializeField] private ARPlacementManager placementManager;
-        [SerializeField] private TMP_Text instructionText;
+        [SerializeField] private TMP_Text titleText;
+        [SerializeField] private TMP_Text bodyText;
         [SerializeField] private Button placeButton;
-        [SerializeField] private Button repositionButton;
+        [SerializeField] private Button closeButton;
+        [SerializeField] private Image scanStep;
+        [SerializeField] private Image placeStep;
+
+        private static readonly Color StepOn = new Color(1f, 0.541f, 0.239f);   // orange
+        private static readonly Color StepOff = new Color(0.941f, 0.851f, 0.71f); // border
+
+        private void Awake()
+        {
+            Bind(placeButton, placementManager.PlaceBench);
+            Bind(closeButton, app.GoToMenu);
+        }
 
         private void OnEnable()
         {
             GameEvents.PlacementStateChanged += Refresh;
-            placeButton.onClick.AddListener(placementManager.PlaceBench);
-            repositionButton.onClick.AddListener(placementManager.StartRepositioning);
+            Refresh(placementManager.State);
         }
 
-        private void OnDisable()
-        {
-            GameEvents.PlacementStateChanged -= Refresh;
-            placeButton.onClick.RemoveListener(placementManager.PlaceBench);
-            repositionButton.onClick.RemoveListener(placementManager.StartRepositioning);
-        }
-
-        private void Start() => Refresh(placementManager.State);
+        private void OnDisable() => GameEvents.PlacementStateChanged -= Refresh;
 
         private void Refresh(PlacementState state)
         {
-            switch (state)
+            bool found = state != PlacementState.Scanning;
+            titleText.text = state switch
             {
-                case PlacementState.Scanning:
-                    instructionText.text = "Move your phone slowly to scan the table";
-                    break;
-                case PlacementState.ReadyToPlace:
-                    instructionText.text = "Surface found! Tap Place bench";
-                    break;
-                case PlacementState.Placed:
-                    instructionText.text = "Bench placed";
-                    break;
-            }
-
-            placeButton.gameObject.SetActive(state != PlacementState.Placed);
+                PlacementState.Scanning => "Looking for a table",
+                PlacementState.ReadyToPlace => "Table found",
+                _ => "Lab placed"
+            };
+            bodyText.text = state switch
+            {
+                PlacementState.Scanning => "Move your phone slowly over a flat surface.",
+                PlacementState.ReadyToPlace => "Aim the yellow ring where you want the lab.",
+                _ => "Get ready to build."
+            };
             placeButton.interactable = state == PlacementState.ReadyToPlace;
-            repositionButton.gameObject.SetActive(state == PlacementState.Placed);
+            if (scanStep != null) scanStep.color = StepOn;
+            if (placeStep != null) placeStep.color = found ? StepOn : StepOff;
         }
     }
 }
