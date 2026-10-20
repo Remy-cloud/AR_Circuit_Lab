@@ -24,6 +24,8 @@ namespace ARCircuitsLab.AR
         [SerializeField] private Transform previewIndicator;
         [Tooltip("Smallest surface (m²) we accept for the bench.")]
         [SerializeField] private float minPlaneArea = 0.1f;
+        [Tooltip("Size of the bench and everything on it (1 = 60 cm wide).")]
+        [SerializeField] private float benchScale = 0.6f;
 
         private static readonly List<ARRaycastHit> Hits = new List<ARRaycastHit>();
 
@@ -65,6 +67,12 @@ namespace ARCircuitsLab.AR
         public void PlaceBench()
         {
             if (State != PlacementState.ReadyToPlace) return;
+            PlaceBenchAt(previewPose.position);
+        }
+
+        /// <summary>Places (or moves) the bench at a point, facing the student.</summary>
+        public void PlaceBenchAt(Vector3 position)
+        {
 
             GameObject benchPrefab = assetManager.GetPrefab(benchAssetName);
             if (bench == null && benchPrefab == null)
@@ -75,7 +83,7 @@ namespace ARCircuitsLab.AR
 
             // Create a new anchor so the bench stays fixed in the real world.
             var anchorObject = new GameObject("Bench Anchor");
-            anchorObject.transform.SetPositionAndRotation(previewPose.position, FacingCamera(previewPose.position));
+            anchorObject.transform.SetPositionAndRotation(position, FacingCamera(position));
             ARAnchor newAnchor = anchorObject.AddComponent<ARAnchor>();
 
             if (bench == null)
@@ -84,6 +92,7 @@ namespace ARCircuitsLab.AR
             bench.transform.SetParent(anchorObject.transform, false);
             bench.transform.localPosition = Vector3.zero;
             bench.transform.localRotation = Quaternion.identity;
+            bench.transform.localScale = Vector3.one * benchScale;
 
             // Remove the old anchor (only after the bench has moved off it).
             if (currentAnchor != null) Destroy(currentAnchor.gameObject);
