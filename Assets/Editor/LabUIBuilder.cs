@@ -91,28 +91,31 @@ public static class LabUIBuilder
     static GameObject BuildHome(Transform parent, AppStateManager app)
     {
         GameObject s = FullScreen(parent, "Home Screen", true);
-        RectTransform col = Column(s, Pad(56, 56, 50, 60), 34);
+        RectTransform col = Column(s, Pad(56, 56, 50, 60), 26);
 
         RectTransform header = Row(col, "Header", 28);
         Badge(header, "Logo", "", Sun, SunInk, 110);
         Label(header, "AR Circuits Lab", 56, Ink, true);
 
         Image hero = CardBox(col, "Hero Card");
-        VStack(hero.gameObject, 26, Pad(48, 44));
+        VStack(hero.gameObject, 22, Pad(48, 40));
         Image art = Box(hero.transform, "Illustration", SunTint);
-        Size(art, 240);
+        Size(art, 200);
         HStack(art.gameObject, 40, Pad(40), TextAnchor.MiddleCenter);
         Image bat = Box(art.transform, "Battery", Ink, RoundedSmall, 1f); Size(bat, 110, 90);
         Image wire = Box(art.transform, "Wire", Orange, RoundedSmall, 1f); Size(wire, 16, 300);
         Dot(art.transform, "Bulb", Sun, 150);
-        Title(hero.transform, "Light up your first circuit", 70);
-        Body(hero.transform, "Build real circuits on your desk with your phone's camera. No kit needed.");
-        Button start = Button(hero.transform, "Start Button", "Start lab", Style.Primary);
+        Title(hero.transform, "Light up your first circuit", 66);
+        Body(hero.transform, "Build real circuits on your desk with your phone's camera. No kit needed.", 40);
+        Button start = Button(hero.transform, "Start Button", "Start 5 experiments", Style.Primary);
+        Button freeBuild = Button(hero.transform, "Free Build Button", "Free build (no points)", Style.Secondary);
 
-        Label(col, "Your experiments", 52, Ink, true);
-        ExperimentRow(col, "1", "Light the bulb", "Make your first closed loop", "Start here", true);
-        ExperimentRow(col, "2", "Series or parallel", "Make two bulbs shine brightly", "Locked", false);
-        ExperimentRow(col, "3", "Fix the broken circuit", "Find the faulty part", "Locked", false);
+        Label(col, "Your experiments", 48, Ink, true);
+        ExperimentRow(col, "1", "Light the bulb", "Start here", true);
+        ExperimentRow(col, "2", "Dim the bulb", "Resistor", false);
+        ExperimentRow(col, "3", "Two bulbs in series", "Series", false);
+        ExperimentRow(col, "4", "Two bulbs in parallel", "Parallel", false);
+        ExperimentRow(col, "5", "Fix the broken circuit", "Fault", false);
 
         Spacer(col);
         Image bestRow = Box(col, "Best Score", MintTint);
@@ -125,18 +128,17 @@ public static class LabUIBuilder
         Label(bestRow.transform, "History", 42, MintInk, true);
 
         var v = Add<HomeView>(s, app);
-        Set(v, "startButton", start); Set(v, "historyButton", best); Set(v, "bestScoreText", bestScore);
+        Set(v, "startButton", start); Set(v, "freeBuildButton", freeBuild); Set(v, "historyButton", best); Set(v, "bestScoreText", bestScore);
         return s;
     }
 
-    static void ExperimentRow(Transform parent, string number, string title, string sub, string tag, bool active)
+    static void ExperimentRow(Transform parent, string number, string title, string tag, bool active)
     {
         Image row = CardBox(parent, "Experiment " + number, Card, active ? Sun : Border);
-        HStack(row.gameObject, 28, Pad(34, 24), TextAnchor.MiddleLeft);
-        Badge(row.transform, "Number", number, active ? Sun : Soft, active ? SunInk : Muted, 100);
-        RectTransform texts = Rect("Texts", row.transform); VStack(texts.gameObject, 4, Pad(0)); Size(texts, flexW: 1);
-        Label(texts, title, 44, Ink, true);
-        Label(texts, sub, 36, Muted);
+        HStack(row.gameObject, 26, Pad(30, 16), TextAnchor.MiddleLeft);
+        Badge(row.transform, "Number", number, active ? Sun : Soft, active ? SunInk : Muted, 76);
+        TextMeshProUGUI name = Label(row.transform, title, 42, Ink, true); Size(name, flexW: 1);
+        name.textWrappingMode = TextWrappingModes.NoWrap;
         Image chip = Box(row.transform, "Tag", active ? SunTint : Soft, RoundedSmall, 0.5f);
         HStack(chip.gameObject, 0, Pad(26, 12), TextAnchor.MiddleCenter);
         Label(chip.transform, tag, 32, active ? SunInk : Muted, true).textWrappingMode = TextWrappingModes.NoWrap;
@@ -151,7 +153,7 @@ public static class LabUIBuilder
 
         RectTransform header = Row(col, "Header", 28);
         Button back = RoundButton(header, "Back Button", "‹");
-        Label(header, "Experiment 1 of 3", 40, Muted);
+        Label(header, "Experiment 1 of 5", 40, Muted);
 
         Image art = CardBox(col, "Illustration");
         Size(art, 500);
@@ -246,7 +248,7 @@ public static class LabUIBuilder
         HStack(top.gameObject, 24, Pad(0), TextAnchor.UpperLeft);
         Image goal = CardBox(top, "Goal Card"); Size(goal, flexW: 1);
         VStack(goal.gameObject, 8, Pad(40, 32));
-        TextMeshProUGUI exp = Label(goal.transform, "Experiment 1 of 3", 34, Muted, name: "Experiment");
+        TextMeshProUGUI exp = Label(goal.transform, "Experiment 1 of 5", 34, Muted, name: "Experiment");
         TextMeshProUGUI title = Label(goal.transform, "Light the bulb", 54, Ink, true, name: "Title");
         TextMeshProUGUI goalText = Label(goal.transform, "Connect a battery, a switch and a bulb.", 38, Ink, name: "Goal");
         Button pause = RoundButton(top, "Pause Button", "II");
@@ -255,7 +257,7 @@ public static class LabUIBuilder
         Image readings = CardBox(s.transform, "Readings");
         RectTransform rr = readings.rectTransform;
         rr.anchorMin = rr.anchorMax = rr.pivot = new Vector2(1, 0);
-        rr.anchoredPosition = new Vector2(-44, 760); rr.sizeDelta = new Vector2(520, 150);
+        rr.anchoredPosition = new Vector2(-44, 760); rr.sizeDelta = new Vector2(640, 150);
         HStack(readings.gameObject, 40, Pad(36, 22), TextAnchor.MiddleLeft);
         TextMeshProUGUI current = Reading(readings.transform, "Current", "0.00 A");
         TextMeshProUGUI circuit = Reading(readings.transform, "Circuit", "Open");
@@ -265,7 +267,7 @@ public static class LabUIBuilder
         Image hint = CardBox(s.transform, "Hint Bubble");
         RectTransform hr = hint.rectTransform;
         hr.anchorMin = hr.anchorMax = new Vector2(0.5f, 0.5f); hr.pivot = new Vector2(0.5f, 0.5f);
-        hr.anchoredPosition = new Vector2(0, 260); hr.sizeDelta = new Vector2(760, 170);
+        hr.anchoredPosition = new Vector2(0, 560); hr.sizeDelta = new Vector2(860, 150);
         TextMeshProUGUI hintText = Label(hint.transform, "Tap a part below, then tap the bench.", 40, Ink, name: "Hint");
         Stretch(hintText.rectTransform); hintText.margin = new Vector4(36, 20, 36, 20);
         hintText.alignment = TextAlignmentOptions.Center;
@@ -292,7 +294,7 @@ public static class LabUIBuilder
         pts.fontSize = 44; pts.textWrappingMode = TextWrappingModes.NoWrap;
         RectTransform st = Rect("Texts", sh); VStack(st.gameObject, 4, Pad(0)); Size(st, flexW: 1);
         TextMeshProUGUI sTitle = Label(st, "The bulb is on!", 66, Ink, true, name: "Title");
-        Label(st, "Experiment complete", 38, Muted);
+        TextMeshProUGUI sSub = Label(st, "Experiment complete", 38, Muted, name: "Subtitle");
         Image why = Box(success.transform, "Why Box", SunTint);
         VStack(why.gameObject, 0, Pad(44, 36));
         TextMeshProUGUI sBody = Label(why.transform, "Closing the switch completed the loop, so current can flow.", 42, SunInk, name: "Body");
@@ -307,6 +309,7 @@ public static class LabUIBuilder
         Badge(wh, "Alert", "!", RedTint, RedInk, 100);
         Label(wh, "Short circuit!", 60, RedInk, true);
         Label(warn.transform, "The battery's two ends are joined with nothing in between. A real battery would get hot.", 40, Ink);
+        TextMeshProUGUI penalty = Label(warn.transform, "1 mistake recorded, 10 points lost.", 36, RedInk, true, name: "Penalty");
         Button wUndo = Button(warn.transform, "Undo Wire Button", "Undo wire", Style.Danger, 130, 44);
 
         Set(v, "experimentText", exp); Set(v, "titleText", title); Set(v, "goalText", goalText);
@@ -315,6 +318,7 @@ public static class LabUIBuilder
         Set(v, "batteryButton", battery); Set(v, "switchButton", sw); Set(v, "bulbButton", bulb);
         Set(v, "resistorButton", resistor); Set(v, "undoButton", undo);
         Set(v, "successSheet", success.gameObject); Set(v, "successTitle", sTitle); Set(v, "successBody", sBody);
+        Set(v, "successSubtitle", sSub); Set(v, "successPoints", pts); Set(v, "warningPenalty", penalty);
         Set(v, "continueButton", cont); Set(v, "warningBanner", warn.gameObject); Set(v, "warningUndoButton", wUndo);
         return s;
     }
@@ -322,8 +326,10 @@ public static class LabUIBuilder
     static TextMeshProUGUI Reading(Transform parent, string label, string value)
     {
         RectTransform c = Rect(label, parent); VStack(c.gameObject, 2, Pad(0));
-        Label(c, label, 30, Muted);
-        return Label(c, value, 44, Ink, true, name: "Value");
+        Label(c, label, 30, Muted).textWrappingMode = TextWrappingModes.NoWrap;
+        TextMeshProUGUI v = Label(c, value, 44, Ink, true, name: "Value");
+        v.textWrappingMode = TextWrappingModes.NoWrap;
+        return v;
     }
 
     static Button Part(Transform parent, string name)
@@ -373,8 +379,8 @@ public static class LabUIBuilder
         GameObject s = FullScreen(parent, "Summary Screen", true);
         RectTransform col = Column(s, Pad(56, 56, 120, 70), 40);
 
-        RectTransform bulbs = Row(col, "Bulbs", 90, TextAnchor.MiddleCenter);
-        for (int i = 0; i < 3; i++) Dot(bulbs, "Bulb " + (i + 1), Sun, 130);
+        RectTransform bulbs = Row(col, "Bulbs", 40, TextAnchor.MiddleCenter);
+        for (int i = 0; i < 5; i++) Dot(bulbs, "Bulb " + (i + 1), Sun, 110);
         TextMeshProUGUI headline = Label(col, "Lab complete!", 96, Ink, true, TextAlignmentOptions.Center, "Headline");
         Label(col, "Here's how you did.", 44, Muted, align: TextAlignmentOptions.Center);
 
@@ -444,7 +450,7 @@ public static class LabUIBuilder
             HStack(row.gameObject, 20, Pad(44, 30), TextAnchor.MiddleLeft);
             RectTransform texts = Rect("Texts", row); VStack(texts.gameObject, 4, Pad(0)); Size(texts, flexW: 1);
             TextMeshProUGUI date = Label(texts, "Today, 18:42", 42, Ink, true, name: "Date");
-            TextMeshProUGUI detail = Label(texts, "3 of 3 done", 34, Muted, name: "Detail");
+            TextMeshProUGUI detail = Label(texts, "5 of 5 done", 34, Muted, name: "Detail");
             TextMeshProUGUI sc = Label(row, "0", 58, Ink, true, TextAlignmentOptions.Right, "Score");
 
             var e = rows.GetArrayElementAtIndex(i);

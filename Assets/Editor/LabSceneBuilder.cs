@@ -12,9 +12,11 @@ using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using ARCircuitsLab.AR;
 using ARCircuitsLab.AssetLoading;
+using ARCircuitsLab.Circuit;
 using ARCircuitsLab.Audio;
 using ARCircuitsLab.Managers;
 using ARCircuitsLab.States;
+using ARCircuitsLab.Tasks;
 using ARCircuitsLab.UI;
 
 /// <summary>
@@ -65,6 +67,24 @@ public static class LabSceneBuilder
         so.FindProperty("previewIndicator").objectReferenceValue = indicator.transform;
         so.ApplyModifiedPropertiesWithoutUndo();
 
+        // Circuit: parts, wires, solver, touch input and electron effect.
+        var circuit = AddManager<CircuitManager>(managers, "Circuit Manager");
+        var flow = circuit.gameObject.AddComponent<ElectronFlow>();
+        var input = circuit.gameObject.AddComponent<CircuitInput>();
+        Wire(circuit, "assets", assetManager);
+        Wire(circuit, "electronFlow", flow);
+        Wire(input, "circuit", circuit);
+
+        // Tasks: the five experiments (and Free build).
+        var taskManager = AddManager<TaskManager>(managers, "Task Manager");
+        Wire(taskManager, "circuit", circuit);
+        TaskData[] taskAssets = TaskDataBuilder.CreateAll();
+        var tmSo = new SerializedObject(taskManager);
+        var taskList = tmSo.FindProperty("tasks");
+        taskList.arraySize = taskAssets.Length;
+        for (int i = 0; i < taskAssets.Length; i++) taskList.GetArrayElementAtIndex(i).objectReferenceValue = taskAssets[i];
+        tmSo.ApplyModifiedPropertiesWithoutUndo();
+
         var uiManager = AddManager<UIManager>(managers, "UI Manager");
         var stateManager = AddManager<AppStateManager>(managers, "App State Manager");
         var stSo = new SerializedObject(stateManager);
@@ -73,6 +93,7 @@ public static class LabSceneBuilder
         stSo.FindProperty("placement").objectReferenceValue = placement;
         stSo.FindProperty("ui").objectReferenceValue = uiManager;
         stSo.FindProperty("data").objectReferenceValue = dataManager;
+        stSo.FindProperty("tasks").objectReferenceValue = taskManager;
         stSo.ApplyModifiedPropertiesWithoutUndo();
 
         // All screens, then tell the UI Manager which screen belongs to which state.
@@ -90,6 +111,7 @@ public static class LabSceneBuilder
         uiSo.ApplyModifiedPropertiesWithoutUndo();
         foreach (var m in map) m.Item2.SetActive(false);
 
+        PartPrefabBuilder.CreateAll();
         AddressablesSetup.Setup();
 
         EditorSceneManager.SaveScene(scene, ScenePath);

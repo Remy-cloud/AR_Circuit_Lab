@@ -8,8 +8,8 @@ using ARCircuitsLab.Events;
 namespace ARCircuitsLab.UI
 {
     /// <summary>
-    /// In-lab HUD: current experiment, live readings, hints, the parts drawer,
-    /// success feedback and the short-circuit warning.
+    /// In-lab HUD: current experiment, live readings, hints and instructions,
+    /// the parts drawer, success feedback and the short-circuit warning.
     /// </summary>
     public class HudView : ViewBase
     {
@@ -32,14 +32,25 @@ namespace ARCircuitsLab.UI
         [SerializeField] private Button bulbButton;
         [SerializeField] private Button resistorButton;
         [SerializeField] private Button undoButton;
+        [SerializeField] private Color selectedFill = new Color(1f, 0.945f, 0.81f);
+        [SerializeField] private Color selectedEdge = new Color(1f, 0.54f, 0.24f);
 
         [Header("Feedback")]
         [SerializeField] private GameObject successSheet;
         [SerializeField] private TMP_Text successTitle;
+        [SerializeField] private TMP_Text successSubtitle;
+        [SerializeField] private TMP_Text successPoints;
         [SerializeField] private TMP_Text successBody;
         [SerializeField] private Button continueButton;
         [SerializeField] private GameObject warningBanner;
+        [SerializeField] private TMP_Text warningPenalty;
         [SerializeField] private Button warningUndoButton;
+
+        private Button[] partButtons;
+        private Color[] partFills;
+        private Color[] partEdges;
+        private string hint = "";
+        private string instruction = "";
 
         private void Awake()
         {
@@ -49,12 +60,29 @@ namespace ARCircuitsLab.UI
             Bind(bulbButton, () => GameEvents.RaisePartSelected(PartType.Bulb));
             Bind(resistorButton, () => GameEvents.RaisePartSelected(PartType.Resistor));
             Bind(undoButton, GameEvents.RaiseUndoRequested);
-            Bind(continueButton, () => successSheet.SetActive(false));
+            Bind(continueButton, () =>
+            {
+                successSheet.SetActive(false);
+                GameEvents.RaiseContinueRequested();
+            });
             Bind(warningUndoButton, () =>
             {
                 warningBanner.SetActive(false);
                 GameEvents.RaiseUndoRequested();
             });
+
+            successSheet.SetActive(false);
+
+            // Same order as the PartType enum.
+            partButtons = new[] { batteryButton, switchButton, bulbButton, resistorButton };
+            partFills = new Color[partButtons.Length];
+            partEdges = new Color[partButtons.Length];
+            for (int i = 0; i < partButtons.Length; i++)
+            {
+                partFills[i] = partButtons[i].targetGraphic.color;
+                Outline o = partButtons[i].GetComponent<Outline>();
+                partEdges[i] = o != null ? o.effectColor : Color.clear;
+            }
         }
 
         private void OnEnable()
@@ -62,7 +90,9 @@ namespace ARCircuitsLab.UI
             GameEvents.ProgressChanged += ShowProgress;
             GameEvents.FeedbackShown += ShowSuccess;
             GameEvents.ShortCircuit += ShowWarning;
-            successSheet.SetActive(false);
+            GameEvents.SelectedPartChanged += HighlightPart;
+            GameEvents.InstructionChanged += ShowInstruction;
+            GameEvents.TaskStarted += OnTaskStarted;
             warningBanner.SetActive(false);
             ShowProgress(GameEvents.LastProgress);
         }
@@ -72,19 +102,55 @@ namespace ARCircuitsLab.UI
             GameEvents.ProgressChanged -= ShowProgress;
             GameEvents.FeedbackShown -= ShowSuccess;
             GameEvents.ShortCircuit -= ShowWarning;
+            GameEvents.SelectedPartChanged -= HighlightPart;
+            GameEvents.InstructionChanged -= ShowInstruction;
+            GameEvents.TaskStarted -= OnTaskStarted;
         }
 
         private void ShowProgress(SessionProgress p)
         {
             if (p.experimentCount == 0) return;   // nothing sent yet
-            experimentText.text = $"Experiment {p.experimentNumber} of {p.experimentCount}";
+            experimentText.text = p.freeBuild ? "No tasks, no points" : $"Experiment {p.experimentNumber} of {p.experimentCount}";
             titleText.text = p.title;
             goalText.text = p.goal;
             currentText.text = $"{p.current:0.00} A";
-            circuitText.text = p.circuitClosed ? "Closed" : "Open";
-            scoreText.text = $"{p.score}";
-            hintBubble.SetActive(!string.IsNullOrEmpty(p.hint));
-            hintText.text = p.hint;
+            circuitText.text = p.shortCircuit ? "Short!" : p.circuitClosed ? "Closed" : "Open";
+            scoreText.text = p.freeBuild ? "-" : $"{p.score}";
+            hint = p.hint ?? "";
+            if (!p.shortCircuit) warningBanner.SetActive(false);
+            warningPenalty.text = p.freeBuild ? "In a real lab, unplug the battery straight away." : "1 mistake recorded, 10 points lost.";
+            RefreshHint();
+        }
+
+        private void ShowInstruction(string text)
+        {
+            instruction = text ?? "";
+            RefreshHint();
+        }
+
+        // An instruction (what to do right now) is shown instead of the experiment hint.
+        private void RefreshHint()
+        {
+            string text = string.IsNullOrEmpty(instruction) ? hint : instruction;
+            hintBubble.SetActive(!string.IsNullOrEmpty(text));
+            hintText.text = text;
+        }
+
+        private void HighlightPart(PartType? selected)
+        {
+            for (int i = 0; i < partButtons.Length; i++)
+            {
+                bool on = selected.HasValue && (int)selected.Value == i;
+                partButtons[i].targetGraphic.color = on ? selectedFill : partFills[i];
+                Outline o = partButtons[i].GetComponent<Outline>();
+                if (o != null) o.effectColor = on ? selectedEdge : partEdges[i];
+            }
+        }
+
+        private void OnTaskStarted(int _)
+        {
+            successSheet.SetActive(false);
+            warningBanner.SetActive(false);
         }
 
         private void ShowSuccess(Feedback f)
@@ -92,6 +158,10 @@ namespace ARCircuitsLab.UI
             warningBanner.SetActive(false);
             successTitle.text = f.title;
             successBody.text = f.body;
+            if (successSubtitle != null && !string.IsNullOrEmpty(f.subtitle)) successSubtitle.text = f.subtitle;
+            if (successPoints != null && !string.IsNullOrEmpty(f.points)) successPoints.text = f.points;
+            var label = continueButton.GetComponentInChildren<TMP_Text>();
+            if (label != null) label.text = string.IsNullOrEmpty(f.button) ? "Next experiment" : f.button;
             successSheet.SetActive(true);
         }
 
