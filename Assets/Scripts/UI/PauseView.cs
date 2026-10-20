@@ -1,4 +1,6 @@
+using TMPro;
 using UnityEngine;
+using ARCircuitsLab.Tasks;
 using UnityEngine.UI;
 
 namespace ARCircuitsLab.UI
@@ -17,6 +19,12 @@ namespace ARCircuitsLab.UI
             Bind(moveBenchButton, app.MoveBench);
             Bind(restartButton, app.RestartLab);
             Bind(menuButton, app.GoToMenu);
+        }
+
+        private void OnEnable()
+        {
+            var label = restartButton.GetComponentInChildren<TMP_Text>();
+            if (label != null) label.text = app.Mode == LabMode.FreeBuild ? "Clear the bench" : "Restart lab";
         }
     }
 }

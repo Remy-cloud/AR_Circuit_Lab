@@ -4,6 +4,7 @@ using ARCircuitsLab.AR;
 using ARCircuitsLab.AssetLoading;
 using ARCircuitsLab.Events;
 using ARCircuitsLab.Managers;
+using ARCircuitsLab.Tasks;
 using ARCircuitsLab.UI;
 
 namespace ARCircuitsLab.States
@@ -19,6 +20,7 @@ namespace ARCircuitsLab.States
         [SerializeField] private ARPlacementManager placement;
         [SerializeField] private UIManager ui;
         [SerializeField] private DataManager data;
+        [SerializeField] private TaskManager tasks;
 
         private readonly Dictionary<AppStateId, IAppState> states = new Dictionary<AppStateId, IAppState>();
 
@@ -26,6 +28,7 @@ namespace ARCircuitsLab.States
         public ARPlacementManager Placement => placement;
         public UIManager UI => ui;
         public DataManager Data => data;
+        public LabMode Mode => tasks.Mode;
         public IAppState Current { get; private set; }
 
         private void Awake()
@@ -54,7 +57,8 @@ namespace ARCircuitsLab.States
 
         // ---- Called by UI buttons ----
         public void ShowBriefing() => ChangeState(AppStateId.Briefing);
-        public void StartLab() => ChangeState(AppStateId.Setup);
+        public void StartLab() => StartLab(LabMode.Experiments);
+        public void StartFreeBuild() => StartLab(LabMode.FreeBuild);
         public void GoToMenu() => ChangeState(AppStateId.Menu);
         public void Pause() => ChangeState(AppStateId.Paused);
         public void Resume() => ChangeState(AppStateId.Simulation);
@@ -72,6 +76,12 @@ namespace ARCircuitsLab.States
         {
             GameEvents.RaiseRestartRequested();
             ChangeState(AppStateId.Simulation);
+        }
+
+        private void StartLab(LabMode mode)
+        {
+            tasks.SetMode(mode);
+            ChangeState(AppStateId.Setup);
         }
 
         private void Register(IAppState state) => states[state.Id] = state;

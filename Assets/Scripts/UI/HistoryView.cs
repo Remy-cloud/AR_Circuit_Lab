@@ -42,7 +42,7 @@ namespace ARCircuitsLab.UI
 
                 SessionRecord r = recent[i];
                 rows[i].dateText.text = FormatDate(r.date);
-                rows[i].detailText.text = $"{r.tasksCompleted} of 3 done, {FormatTime(r.timeTaken)}, {r.mistakes} mistake{(r.mistakes == 1 ? "" : "s")}";
+                rows[i].detailText.text = $"{r.tasksCompleted} of 5 done, {FormatTime(r.timeTaken)}, {r.mistakes} mistake{(r.mistakes == 1 ? "" : "s")}";
                 rows[i].scoreText.text = r.score.ToString();
             }
         }

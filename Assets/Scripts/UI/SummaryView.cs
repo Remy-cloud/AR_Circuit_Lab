@@ -15,7 +15,7 @@ namespace ARCircuitsLab.UI
         [SerializeField] private TMP_Text mistakesText;
         [SerializeField] private Button restartButton;
         [SerializeField] private Button menuButton;
-        [SerializeField] private int experimentCount = 3;
+        [SerializeField] private int experimentCount = 5;
 
         private void Awake()
         {
