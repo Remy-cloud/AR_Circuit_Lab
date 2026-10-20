@@ -28,7 +28,7 @@ namespace ARCircuitsLab.Events
         public static event Action<Transform> BenchPlaced;
         public static event Action RepositionStarted;
 
-        // ---- Circuit (used from Phase 3) ----
+        // ---- Circuit ----
         public static event Action ComponentPlaced;
         public static event Action WireConnected;
         public static event Action<bool> SwitchToggled;
@@ -39,6 +39,9 @@ namespace ARCircuitsLab.Events
         public static event Action<PartType> PartSelected;
         public static event Action UndoRequested;
         public static event Action RestartRequested;
+        public static event Action ContinueRequested;
+        public static event Action<PartType?> SelectedPartChanged;
+        public static event Action<string> InstructionChanged;
 
         // ---- Tasks & session ----
         public static event Action<SessionProgress> ProgressChanged;
@@ -65,6 +68,9 @@ namespace ARCircuitsLab.Events
         public static void RaisePartSelected(PartType p) => PartSelected?.Invoke(p);
         public static void RaiseUndoRequested() => UndoRequested?.Invoke();
         public static void RaiseRestartRequested() => RestartRequested?.Invoke();
+        public static void RaiseContinueRequested() => ContinueRequested?.Invoke();
+        public static void RaiseSelectedPartChanged(PartType? p) => SelectedPartChanged?.Invoke(p);
+        public static void RaiseInstructionChanged(string text) => InstructionChanged?.Invoke(text);
         public static void RaiseProgressChanged(SessionProgress p) { LastProgress = p; ProgressChanged?.Invoke(p); }
         public static void RaiseFeedbackShown(Feedback f) => FeedbackShown?.Invoke(f);
         public static void RaiseTaskStarted(int index) => TaskStarted?.Invoke(index);
