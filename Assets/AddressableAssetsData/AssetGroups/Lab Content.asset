@@ -15,8 +15,50 @@ MonoBehaviour:
   m_GroupName: Lab Content
   m_GUID: add0c9e4dc20d4176935fa36bf7d0f0c
   m_SerializeEntries:
+  - m_GUID: 14e9ffcfc53c34c7787e5b088ce7bc1b
+    m_Address: Electron
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - lab
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1782168bc28f3474e95f6ea4378261b8
+    m_Address: Resistor
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - lab
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6826e5438077f4a43b99fc22e33bb784
+    m_Address: Bulb
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - lab
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b76916cba7c64f6d92cfd674ac60607
+    m_Address: Wire
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - lab
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a8a6a7a7832ae4926a557972a84a219a
+    m_Address: Bench Slot
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - lab
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c9921cf8fe21b43b29e62280e1fd6f10
+    m_Address: Switch
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - lab
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ed09c356f3fc24fc19e0252078cf51eb
     m_Address: Lab Bench
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - lab
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f743a8194163248a5856a77001778497
+    m_Address: Battery
     m_ReadOnly: 0
     m_SerializedLabels:
     - lab
