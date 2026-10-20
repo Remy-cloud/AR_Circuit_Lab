@@ -12,6 +12,8 @@ namespace ARCircuitsLab.Data
         public int mistakes;
         public float current;          // amps
         public bool circuitClosed;
+        public bool shortCircuit;
+        public bool freeBuild;         // no tasks or points
     }
 
     /// <summary>A message shown to the student after something important happens.</summary>
@@ -19,5 +21,8 @@ namespace ARCircuitsLab.Data
     {
         public string title;
         public string body;
+        public string subtitle;
+        public string points;
+        public string button;
     }
 }
