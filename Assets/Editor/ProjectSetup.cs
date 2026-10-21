@@ -11,6 +11,7 @@ public static class ProjectSetup
     const string Product = "AR Circuits Lab";
     const string BundleId = "com.remy.arcircuitslab";
     const string CameraText = "Used to place the circuit lab on your table";
+    const string AppleTeamId = "6G2ZXGK743";   // Personal Team, so Xcode signs every new build
 
     static ProjectSetup()
     {
@@ -30,6 +31,9 @@ public static class ProjectSetup
 
         if (PlayerSettings.iOS.cameraUsageDescription != CameraText)
         { PlayerSettings.iOS.cameraUsageDescription = CameraText; changed = true; }
+
+        if (PlayerSettings.iOS.appleDeveloperTeamID != AppleTeamId)
+        { PlayerSettings.iOS.appleDeveloperTeamID = AppleTeamId; changed = true; }
 
         if (PlayerSettings.defaultInterfaceOrientation != UIOrientation.Portrait)
         { PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait; changed = true; }
