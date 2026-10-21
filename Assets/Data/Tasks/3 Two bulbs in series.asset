@@ -14,10 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ARCircuitsLab.Tasks.TaskData
   title: Two bulbs in series
   goal: Light two bulbs one after the other in a single loop.
-  hint: Press and hold the resistor to remove it. Put a second bulb in its place,
-    so there is only one path.
+  hint: 'Go round in one loop: battery +, switch, bulb, bulb, back to battery -.
+    There is only one path.'
   goalType: 2
   points: 100
+  parts:
+  - 1 battery
+  - 1 switch
+  - 2 bulbs
+  - 4 wires
+  learn: In series, the same current flows through every part.
   successTitle: Both bulbs are on!
   explanation: In series the same current ({0:0.00} A) passes through both bulbs,
     so each one is dimmer.

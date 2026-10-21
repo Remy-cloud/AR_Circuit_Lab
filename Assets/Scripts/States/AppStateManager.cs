@@ -29,6 +29,7 @@ namespace ARCircuitsLab.States
         public UIManager UI => ui;
         public DataManager Data => data;
         public LabMode Mode => tasks.Mode;
+        public TaskManager Tasks => tasks;
         public IAppState Current { get; private set; }
 
         private void Awake()
@@ -56,9 +57,20 @@ namespace ARCircuitsLab.States
         }
 
         // ---- Called by UI buttons ----
-        public void ShowBriefing() => ChangeState(AppStateId.Briefing);
-        public void StartLab() => StartLab(LabMode.Experiments);
-        public void StartFreeBuild() => StartLab(LabMode.FreeBuild);
+        /// <summary>Opens the briefing for one experiment (0 = the first).</summary>
+        public void ShowBriefing(int task)
+        {
+            tasks.Configure(LabMode.Experiments, task);
+            ChangeState(AppStateId.Briefing);
+        }
+        /// <summary>From the briefing: open the camera to place the bench.</summary>
+        public void StartLab() => ChangeState(AppStateId.Setup);
+
+        public void StartFreeBuild()
+        {
+            tasks.Configure(LabMode.FreeBuild);
+            ChangeState(AppStateId.Setup);
+        }
         public void GoToMenu() => ChangeState(AppStateId.Menu);
         public void Pause() => ChangeState(AppStateId.Paused);
         public void Resume() => ChangeState(AppStateId.Simulation);
@@ -76,12 +88,6 @@ namespace ARCircuitsLab.States
         {
             GameEvents.RaiseRestartRequested();
             ChangeState(AppStateId.Simulation);
-        }
-
-        private void StartLab(LabMode mode)
-        {
-            tasks.SetMode(mode);
-            ChangeState(AppStateId.Setup);
         }
 
         private void Register(IAppState state) => states[state.Id] = state;

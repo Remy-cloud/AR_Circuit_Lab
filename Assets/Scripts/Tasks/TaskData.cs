@@ -18,6 +18,11 @@ namespace ARCircuitsLab.Tasks
         public GoalType goalType;
         public int points = 100;
 
+        [Header("Briefing screen")]
+        [Tooltip("Short chips such as \"1 battery\" (up to 4).")]
+        public string[] parts = new string[0];
+        [TextArea] public string learn;
+
         [Header("When finished")]
         public string successTitle = "Well done!";
         [Tooltip("{0} = current through the bulb (A), {1} = current from the battery (A).")]

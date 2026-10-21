@@ -23,6 +23,7 @@ namespace ARCircuitsLab.Data
         public string body;
         public string subtitle;
         public string points;
+        public string next;
         public string button;
     }
 }

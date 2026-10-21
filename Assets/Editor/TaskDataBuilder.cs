@@ -21,40 +21,51 @@ public static class TaskDataBuilder
         {
             Make("1 Light the bulb", GoalType.LightBulb, "Light the bulb",
                 "Connect a battery, a switch and a bulb in one loop. Then close the switch.",
-                "Wire battery + to the switch, the switch to the bulb, and the bulb back to battery -.",
+                "Wire battery + to the switch, the switch to the bulb, and the bulb back to battery -. Then tap the switch.",
                 "The bulb is on!",
-                "Closing the switch completed the loop, so current can flow. I = V ÷ R = 3 V ÷ 12 Ω ≈ {0:0.00} A."),
+                "Closing the switch completed the loop, so current can flow. I = V ÷ R = 3 V ÷ 12 Ω ≈ {0:0.00} A.",
+                new[] { "1 battery", "1 switch", "1 bulb", "3 wires" },
+                "Current only flows when the path is a complete loop."),
 
             Make("2 Dim the bulb", GoalType.DimBulb, "Dim the bulb",
-                "Add a resistor into the loop so the bulb glows less brightly.",
-                "Press and hold a terminal to remove its wire. Put the resistor in the gap and wire it in.",
+                "Build a loop with a battery, a switch, a bulb and a resistor. The bulb should glow less brightly.",
+                "Go round in one loop: battery +, switch, bulb, resistor, back to battery -. Then close the switch.",
                 "The bulb is dimmer!",
-                "The resistor adds 12 Ω, so the total is 24 Ω. Less current flows: 3 V ÷ 24 Ω ≈ {0:0.00} A."),
+                "The resistor adds 12 Ω, so the total is 24 Ω. Less current flows: 3 V ÷ 24 Ω ≈ {0:0.00} A.",
+                new[] { "1 battery", "1 switch", "1 bulb", "1 resistor" },
+                "More resistance means less current, so the bulb is dimmer."),
 
             Make("3 Two bulbs in series", GoalType.SeriesBulbs, "Two bulbs in series",
                 "Light two bulbs one after the other in a single loop.",
-                "Press and hold the resistor to remove it. Put a second bulb in its place, so there is only one path.",
+                "Go round in one loop: battery +, switch, bulb, bulb, back to battery -. There is only one path.",
                 "Both bulbs are on!",
-                "In series the same current ({0:0.00} A) passes through both bulbs, so each one is dimmer."),
+                "In series the same current ({0:0.00} A) passes through both bulbs, so each one is dimmer.",
+                new[] { "1 battery", "1 switch", "2 bulbs", "4 wires" },
+                "In series, the same current flows through every part."),
 
             Make("4 Two bulbs in parallel", GoalType.ParallelBulbs, "Two bulbs in parallel",
                 "Light two bulbs so that both shine at full brightness.",
-                "Join the first terminals of both bulbs together, and the second terminals together. Each bulb gets its own path.",
+                "Join the first terminals of both bulbs together, and the second terminals together. Then connect each side to the battery.",
                 "Full brightness!",
-                "Each bulb gets the full 3 V, so each takes {0:0.00} A. The battery gives the total: {1:0.00} A."),
+                "Each bulb gets the full 3 V, so each takes {0:0.00} A. The battery gives the total: {1:0.00} A.",
+                new[] { "1 battery", "1 switch", "2 bulbs", "5 wires" },
+                "In parallel, each branch gets the full battery voltage."),
 
             Make("5 Fix the broken circuit", GoalType.FixBrokenCircuit, "Fix the broken circuit",
                 "This circuit should work, but the bulb stays dark. Find the fault and fix it.",
-                "Tap a part to check it. Press and hold a broken part to remove it, then build the loop again.",
+                "Tap a part to check it. Press and hold a broken part to remove it, then wire in a new one.",
                 "You fixed it!",
-                "The old bulb was broken, so it blocked the loop like an open switch. With a new bulb, {0:0.00} A flows again."),
+                "The old bulb was broken, so it blocked the loop like an open switch. With a new bulb, {0:0.00} A flows again.",
+                new[] { "Ready-made circuit", "1 new bulb", "2 wires" },
+                "One broken part can stop current in the whole loop."),
         };
 
         AssetDatabase.SaveAssets();
         return tasks;
     }
 
-    static TaskData Make(string file, GoalType goal, string title, string text, string hint, string success, string why)
+    static TaskData Make(string file, GoalType goal, string title, string text, string hint, string success, string why,
+        string[] parts, string learn)
     {
         string path = $"{Folder}/{file}.asset";
         var t = AssetDatabase.LoadAssetAtPath<TaskData>(path);
@@ -70,6 +81,8 @@ public static class TaskDataBuilder
         t.points = 100;
         t.successTitle = success;
         t.explanation = why;
+        t.parts = parts;
+        t.learn = learn;
         EditorUtility.SetDirty(t);
         return t;
     }

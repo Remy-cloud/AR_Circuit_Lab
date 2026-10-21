@@ -13,11 +13,18 @@ MonoBehaviour:
   m_Name: 2 Dim the bulb
   m_EditorClassIdentifier: Assembly-CSharp::ARCircuitsLab.Tasks.TaskData
   title: Dim the bulb
-  goal: Add a resistor into the loop so the bulb glows less brightly.
-  hint: Press and hold a terminal to remove its wire. Put the resistor in the gap
-    and wire it in.
+  goal: Build a loop with a battery, a switch, a bulb and a resistor. The bulb should
+    glow less brightly.
+  hint: 'Go round in one loop: battery +, switch, bulb, resistor, back to battery
+    -. Then close the switch.'
   goalType: 1
   points: 100
+  parts:
+  - 1 battery
+  - 1 switch
+  - 1 bulb
+  - 1 resistor
+  learn: More resistance means less current, so the bulb is dimmer.
   successTitle: The bulb is dimmer!
   explanation: "The resistor adds 12 \u03A9, so the total is 24 \u03A9. Less current
     flows: 3 V \xF7 24 \u03A9 \u2248 {0:0.00} A."

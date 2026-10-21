@@ -15,10 +15,15 @@ MonoBehaviour:
   title: Fix the broken circuit
   goal: This circuit should work, but the bulb stays dark. Find the fault and fix
     it.
-  hint: Tap a part to check it. Press and hold a broken part to remove it, then build
-    the loop again.
+  hint: Tap a part to check it. Press and hold a broken part to remove it, then wire
+    in a new one.
   goalType: 4
   points: 100
+  parts:
+  - Ready-made circuit
+  - 1 new bulb
+  - 2 wires
+  learn: One broken part can stop current in the whole loop.
   successTitle: You fixed it!
   explanation: The old bulb was broken, so it blocked the loop like an open switch.
     With a new bulb, {0:0.00} A flows again.

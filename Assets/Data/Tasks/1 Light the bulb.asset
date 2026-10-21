@@ -15,9 +15,15 @@ MonoBehaviour:
   title: Light the bulb
   goal: Connect a battery, a switch and a bulb in one loop. Then close the switch.
   hint: Wire battery + to the switch, the switch to the bulb, and the bulb back to
-    battery -.
+    battery -. Then tap the switch.
   goalType: 0
   points: 100
+  parts:
+  - 1 battery
+  - 1 switch
+  - 1 bulb
+  - 3 wires
+  learn: Current only flows when the path is a complete loop.
   successTitle: The bulb is on!
   explanation: "Closing the switch completed the loop, so current can flow. I = V
     \xF7 R = 3 V \xF7 12 \u03A9 \u2248 {0:0.00} A."

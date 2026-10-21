@@ -18,6 +18,7 @@ namespace ARCircuitsLab.Tasks
         [SerializeField] private int mistakePenalty = 10;
 
         private LabMode mode;
+        private int startIndex;
         private bool running;
         private bool waitingForNext;
         private int index;
@@ -29,7 +30,9 @@ namespace ARCircuitsLab.Tasks
 
         public LabMode Mode => mode;
         public int TaskCount => tasks.Length;
+        public int StartIndex => startIndex;
         public TaskData Current => tasks[index];
+        public TaskData GetTask(int i) => tasks[Mathf.Clamp(i, 0, tasks.Length - 1)];
 
         private void OnEnable()
         {
@@ -57,7 +60,11 @@ namespace ARCircuitsLab.Tasks
         }
 
         /// <summary>Chosen on the home screen, before the bench is placed.</summary>
-        public void SetMode(LabMode newMode) => mode = newMode;
+        public void Configure(LabMode newMode, int firstTask = 0)
+        {
+            mode = newMode;
+            startIndex = Mathf.Clamp(firstTask, 0, tasks.Length - 1);
+        }
 
         // ------------------------------------------------------------ session
 
@@ -75,19 +82,28 @@ namespace ARCircuitsLab.Tasks
             circuit.ClearCircuit();
 
             if (mode == LabMode.FreeBuild) Publish();
-            else BeginTask(0);
+            else BeginTask(startIndex);
         }
 
         private void Restart()
         {
             if (!circuit.IsReady) return;
+            SaveIfStarted();
             StartSession();
+        }
+
+        // Leaving early still counts: the experiments finished so far are saved to history.
+        private void SaveIfStarted()
+        {
+            if (running && mode == LabMode.Experiments && completed > 0) EndSession();
         }
 
         private void BeginTask(int i)
         {
             index = i;
             waitingForNext = false;
+            // Every experiment starts on a clean bench.
+            circuit.ClearCircuit();
             if (Current.goalType == GoalType.FixBrokenCircuit) BuildBrokenCircuit();
             GameEvents.RaiseTaskStarted(index);
             Publish();
@@ -112,6 +128,7 @@ namespace ARCircuitsLab.Tasks
         {
             state = newState;
             if (newState != AppStateId.Menu) return;
+            SaveIfStarted();
             running = false;        // the bench is gone; start fresh next time
             circuit.Detach();
         }
@@ -187,9 +204,11 @@ namespace ARCircuitsLab.Tasks
             {
                 title = Current.successTitle,
                 body = string.Format(Current.explanation, bulbCurrent, circuit.BatteryCurrent),
-                subtitle = $"Experiment {index + 1} complete",
+                subtitle = $"Experiment {index + 1} of {tasks.Length} complete",
                 points = $"+{Current.points}",
-                button = last ? "See my results" : "Next experiment",
+                next = last ? "That was the last experiment. Well done!"
+                            : $"Up next: {tasks[index + 1].title}. The bench will be cleared so you can start fresh.",
+                button = last ? "See my results" : $"Start experiment {index + 2}",
             });
             Publish();
         }

@@ -15,9 +15,15 @@ MonoBehaviour:
   title: Two bulbs in parallel
   goal: Light two bulbs so that both shine at full brightness.
   hint: Join the first terminals of both bulbs together, and the second terminals
-    together. Each bulb gets its own path.
+    together. Then connect each side to the battery.
   goalType: 3
   points: 100
+  parts:
+  - 1 battery
+  - 1 switch
+  - 2 bulbs
+  - 5 wires
+  learn: In parallel, each branch gets the full battery voltage.
   successTitle: Full brightness!
   explanation: 'Each bulb gets the full 3 V, so each takes {0:0.00} A. The battery
     gives the total: {1:0.00} A.'
