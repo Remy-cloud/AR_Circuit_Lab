@@ -211,11 +211,26 @@ public static class UIKit
         return t;
     }
 
+    /// <summary>How far backgrounds reach past the safe area, so they fill the notch and home-bar zones.</summary>
+    public const float Bleed = 400f;
+
+    /// <summary>A background that fills the whole phone screen, even outside the safe area.</summary>
+    public static Image FullBleed(Transform parent, string name, Color color)
+    {
+        RectTransform rt = Rect(name, parent);
+        rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+        rt.offsetMin = new Vector2(-Bleed, -Bleed); rt.offsetMax = new Vector2(Bleed, Bleed);
+        rt.SetAsFirstSibling();
+        var img = rt.gameObject.AddComponent<Image>();
+        img.color = color;
+        return img;
+    }
+
     /// <summary>A white sheet that slides up from the bottom (rounded top only).</summary>
     public static Image BottomSheet(Transform parent, string name, float height)
     {
         var img = Box(parent, name, Card);
-        Dock(img.rectTransform, false, height + 60f, 0f, -60f); // bottom corners sit below the screen
+        Dock(img.rectTransform, false, height + Bleed, 0f, -Bleed); // runs past the home bar to the screen edge
         return img;
     }
 
