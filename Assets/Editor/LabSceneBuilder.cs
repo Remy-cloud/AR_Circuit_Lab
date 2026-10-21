@@ -56,7 +56,7 @@ public static class LabSceneBuilder
         Wire(audioManager, "assetManager", assetManager);
         var placement = AddManager<ARPlacementManager>(managers, "AR Placement Manager");
 
-        GameObject indicator = (GameObject)PrefabUtility.InstantiatePrefab(CreateIndicatorPrefab());
+        GameObject indicator = (GameObject)PrefabUtility.InstantiatePrefab(PlacementVisualsBuilder.BuildAll());
         indicator.name = "Placement Indicator";
         CreateBenchPrefab();
 
@@ -199,25 +199,6 @@ public static class LabSceneBuilder
         GameObject plane = Selection.activeGameObject;
         var prefab = PrefabUtility.SaveAsPrefabAsset(plane, path);
         Object.DestroyImmediate(plane);
-        return prefab;
-    }
-
-    static GameObject CreateIndicatorPrefab()
-    {
-        string path = PrefabFolder + "/Placement Indicator.prefab";
-        var existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-        if (existing != null) return existing;
-
-        var root = new GameObject("Placement Indicator");
-        var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        ring.name = "Ring";
-        ring.transform.SetParent(root.transform, false);
-        ring.transform.localScale = new Vector3(0.35f, 0.002f, 0.35f);
-        Object.DestroyImmediate(ring.GetComponent<Collider>());
-        ring.GetComponent<MeshRenderer>().sharedMaterial = GetMaterial("Indicator", new Color(0.1f, 0.75f, 0.65f));
-
-        var prefab = PrefabUtility.SaveAsPrefabAsset(root, path);
-        Object.DestroyImmediate(root);
         return prefab;
     }
 
