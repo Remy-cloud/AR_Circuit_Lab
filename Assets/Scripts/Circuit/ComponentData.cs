@@ -11,6 +11,8 @@ namespace ARCircuitsLab.Circuit
     {
         public PartType partType;
         public string displayName = "Part";
+        [Tooltip("One short sentence shown when the student picks this part.")]
+        [TextArea] public string description;
 
         [Tooltip("Battery: voltage in volts. Other parts: resistance in ohms.")]
         public float value = 1f;

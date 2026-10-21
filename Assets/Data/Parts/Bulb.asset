@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ARCircuitsLab.Circuit.ComponentData
   partType: 2
   displayName: Bulb
+  description: 'Bulb: lights up when current flows through it. More current makes
+    it brighter.'
   value: 12
   internalResistance: 0.2
   ratedPower: 0.75

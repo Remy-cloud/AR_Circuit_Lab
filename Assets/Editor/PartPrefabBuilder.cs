@@ -24,10 +24,14 @@ public static class PartPrefabBuilder
         Folder("Assets", "Data");
         Folder("Assets/Data", "Parts");
 
-        var battery = Data("Battery", PartType.Battery, "Battery", 3f);
-        var sw = Data("Switch", PartType.Switch, "Switch", 0.01f);
-        var bulb = Data("Bulb", PartType.Bulb, "Bulb", 12f);
-        var resistor = Data("Resistor", PartType.Resistor, "Resistor", 12f);
+        var battery = Data("Battery", PartType.Battery, "Battery", 3f,
+            "Battery: pushes current around the loop with 3 volts. The red end is +.");
+        var sw = Data("Switch", PartType.Switch, "Switch", 0.01f,
+            "Switch: opens or closes the loop. Tap it on the bench to turn it on or off.");
+        var bulb = Data("Bulb", PartType.Bulb, "Bulb", 12f,
+            "Bulb: lights up when current flows through it. More current makes it brighter.");
+        var resistor = Data("Resistor", PartType.Resistor, "Resistor", 12f,
+            "Resistor: slows the current down with 12 ohms of resistance.");
 
         BuildBattery(battery);
         BuildSwitch(sw);
@@ -226,7 +230,7 @@ public static class PartPrefabBuilder
         Object.DestroyImmediate(root);
     }
 
-    static ComponentData Data(string file, PartType type, string displayName, float value)
+    static ComponentData Data(string file, PartType type, string displayName, float value, string description)
     {
         string path = $"{DataFolder}/{file}.asset";
         var d = AssetDatabase.LoadAssetAtPath<ComponentData>(path);
@@ -237,6 +241,7 @@ public static class PartPrefabBuilder
         }
         d.partType = type;
         d.displayName = displayName;
+        d.description = description;
         d.value = value;
         d.internalResistance = 0.2f;
         d.ratedPower = 0.75f;   // 3 V across 12 Ω = 0.75 W, full brightness

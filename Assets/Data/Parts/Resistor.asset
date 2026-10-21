@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ARCircuitsLab.Circuit.ComponentData
   partType: 3
   displayName: Resistor
+  description: 'Resistor: slows the current down with 12 ohms of resistance.'
   value: 12
   internalResistance: 0.2
   ratedPower: 0.75

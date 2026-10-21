@@ -152,7 +152,7 @@ namespace ARCircuitsLab.Circuit
             }
             GameEvents.RaiseSelectedPartChanged(type);
             Instruction(anyFree
-                ? $"Tap a glowing spot to place the {NameOf(type)}."
+                ? $"{DescriptionOf(type)} Tap a glowing spot to place it."
                 : "The bench is full. Press and hold a part to remove it.");
         }
 
@@ -395,7 +395,7 @@ namespace ARCircuitsLab.Circuit
         private void Message(string text)
         {
             Instruction(text);
-            messageRoutine = StartCoroutine(ClearLater(3f));
+            messageRoutine = StartCoroutine(ClearLater(4f));
         }
 
         private IEnumerator ClearLater(float seconds)
@@ -414,7 +414,14 @@ namespace ARCircuitsLab.Circuit
                 : $"{p.Data.displayName}: {reading}";
         }
 
-        private static string NameOf(PartType t) => t.ToString().ToLower();
+        private string DescriptionOf(PartType t)
+        {
+            GameObject prefab = assets.GetPrefab(t.ToString());
+            CircuitComponent part = prefab != null ? prefab.GetComponent<CircuitComponent>() : null;
+            return part != null && !string.IsNullOrEmpty(part.Data.description)
+                ? part.Data.description
+                : $"{t}.";
+        }
 
         private static TerminalRef Ref(Terminal t) => new TerminalRef(t.Owner.Slot.Index, t.Index);
 

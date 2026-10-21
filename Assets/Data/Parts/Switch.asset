@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ARCircuitsLab.Circuit.ComponentData
   partType: 1
   displayName: Switch
+  description: 'Switch: opens or closes the loop. Tap it on the bench to turn it
+    on or off.'
   value: 0.01
   internalResistance: 0.2
   ratedPower: 0.75
