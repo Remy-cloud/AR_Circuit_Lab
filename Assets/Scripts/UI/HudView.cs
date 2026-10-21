@@ -41,6 +41,7 @@ namespace ARCircuitsLab.UI
         [SerializeField] private TMP_Text successSubtitle;
         [SerializeField] private TMP_Text successPoints;
         [SerializeField] private TMP_Text successBody;
+        [SerializeField] private TMP_Text successNext;
         [SerializeField] private Button continueButton;
         [SerializeField] private GameObject warningBanner;
         [SerializeField] private TMP_Text warningPenalty;
@@ -63,6 +64,7 @@ namespace ARCircuitsLab.UI
             Bind(continueButton, () =>
             {
                 successSheet.SetActive(false);
+                RefreshHint();
                 GameEvents.RaiseContinueRequested();
             });
             Bind(warningUndoButton, () =>
@@ -132,7 +134,8 @@ namespace ARCircuitsLab.UI
         private void RefreshHint()
         {
             string text = string.IsNullOrEmpty(instruction) ? hint : instruction;
-            hintBubble.SetActive(!string.IsNullOrEmpty(text));
+            // While the well-done card is up, keep the view clear so the circuit can be seen.
+            hintBubble.SetActive(!string.IsNullOrEmpty(text) && !successSheet.activeSelf);
             hintText.text = text;
         }
 
@@ -160,9 +163,15 @@ namespace ARCircuitsLab.UI
             successBody.text = f.body;
             if (successSubtitle != null && !string.IsNullOrEmpty(f.subtitle)) successSubtitle.text = f.subtitle;
             if (successPoints != null && !string.IsNullOrEmpty(f.points)) successPoints.text = f.points;
+            if (successNext != null)
+            {
+                successNext.gameObject.SetActive(!string.IsNullOrEmpty(f.next));
+                successNext.text = f.next;
+            }
             var label = continueButton.GetComponentInChildren<TMP_Text>();
             if (label != null) label.text = string.IsNullOrEmpty(f.button) ? "Next experiment" : f.button;
             successSheet.SetActive(true);
+            RefreshHint();
         }
 
         private void ShowWarning() => warningBanner.SetActive(true);

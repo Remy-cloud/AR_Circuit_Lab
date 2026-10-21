@@ -52,11 +52,7 @@ public static class LabUIBuilder
     static GameObject FullScreen(Transform parent, string name, bool background)
     {
         RectTransform rt = Rect(name, parent); Stretch(rt);
-        if (background)
-        {
-            var bg = rt.gameObject.AddComponent<Image>();
-            bg.color = Bg;
-        }
+        if (background) FullBleed(rt, "Background", Bg);
         return rt.gameObject;
     }
 
@@ -94,8 +90,7 @@ public static class LabUIBuilder
         RectTransform col = Column(s, Pad(56, 56, 50, 60), 26);
 
         RectTransform header = Row(col, "Header", 28);
-        Badge(header, "Logo", "", Sun, SunInk, 110);
-        Label(header, "AR Circuits Lab", 56, Ink, true);
+        Label(header, "AR Circuits Lab", 60, Ink, true);
 
         Image hero = CardBox(col, "Hero Card");
         VStack(hero.gameObject, 22, Pad(48, 40));
@@ -111,11 +106,14 @@ public static class LabUIBuilder
         Button freeBuild = Button(hero.transform, "Free Build Button", "Free build (no points)", Style.Secondary);
 
         Label(col, "Your experiments", 48, Ink, true);
-        ExperimentRow(col, "1", "Light the bulb", "Start here", true);
-        ExperimentRow(col, "2", "Dim the bulb", "Resistor", false);
-        ExperimentRow(col, "3", "Two bulbs in series", "Series", false);
-        ExperimentRow(col, "4", "Two bulbs in parallel", "Parallel", false);
-        ExperimentRow(col, "5", "Fix the broken circuit", "Fault", false);
+        Button[] rows =
+        {
+            ExperimentRow(col, "1", "Light the bulb", "Start here", true),
+            ExperimentRow(col, "2", "Dim the bulb", "Resistor", false),
+            ExperimentRow(col, "3", "Two bulbs in series", "Series", false),
+            ExperimentRow(col, "4", "Two bulbs in parallel", "Parallel", false),
+            ExperimentRow(col, "5", "Fix the broken circuit", "Fault", false),
+        };
 
         Spacer(col);
         Image bestRow = Box(col, "Best Score", MintTint);
@@ -128,13 +126,19 @@ public static class LabUIBuilder
         Label(bestRow.transform, "History", 42, MintInk, true);
 
         var v = Add<HomeView>(s, app);
-        Set(v, "startButton", start); Set(v, "freeBuildButton", freeBuild); Set(v, "historyButton", best); Set(v, "bestScoreText", bestScore);
+        Set(v, "startButton", start); Set(v, "freeBuildButton", freeBuild); Set(v, "historyButton", best);
+        var hso = new UnityEditor.SerializedObject(v);
+        var list = hso.FindProperty("experimentButtons");
+        list.arraySize = rows.Length;
+        for (int i = 0; i < rows.Length; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = rows[i];
+        hso.ApplyModifiedPropertiesWithoutUndo(); Set(v, "bestScoreText", bestScore);
         return s;
     }
 
-    static void ExperimentRow(Transform parent, string number, string title, string tag, bool active)
+    static Button ExperimentRow(Transform parent, string number, string title, string tag, bool active)
     {
         Image row = CardBox(parent, "Experiment " + number, Card, active ? Sun : Border);
+        var button = row.gameObject.AddComponent<UnityEngine.UI.Button>(); button.targetGraphic = row;
         HStack(row.gameObject, 26, Pad(30, 16), TextAnchor.MiddleLeft);
         Badge(row.transform, "Number", number, active ? Sun : Soft, active ? SunInk : Muted, 76);
         TextMeshProUGUI name = Label(row.transform, title, 42, Ink, true); Size(name, flexW: 1);
@@ -142,6 +146,8 @@ public static class LabUIBuilder
         Image chip = Box(row.transform, "Tag", active ? SunTint : Soft, RoundedSmall, 0.5f);
         HStack(chip.gameObject, 0, Pad(26, 12), TextAnchor.MiddleCenter);
         Label(chip.transform, tag, 32, active ? SunInk : Muted, true).textWrappingMode = TextWrappingModes.NoWrap;
+        Label(row.transform, "›", 56, Muted, true);
+        return button;
     }
 
     // ------------------------------------------------------------------ Briefing
@@ -153,7 +159,7 @@ public static class LabUIBuilder
 
         RectTransform header = Row(col, "Header", 28);
         Button back = RoundButton(header, "Back Button", "‹");
-        Label(header, "Experiment 1 of 5", 40, Muted);
+        TextMeshProUGUI number = Label(header, "Experiment 1 of 5", 40, Muted, name: "Number");
 
         Image art = CardBox(col, "Illustration");
         Size(art, 500);
@@ -163,22 +169,24 @@ public static class LabUIBuilder
         Image bulb = Dot(art.transform, "Bulb", Card, 150);
         var bo = bulb.gameObject.AddComponent<Outline>(); bo.effectColor = Ink; bo.effectDistance = new Vector2(6, -6);
 
-        Title(col, "Light the bulb", 88);
-        Label(col, "Connect a battery, a switch and a bulb in one loop. Then close the switch.", 46, Ink);
+        TextMeshProUGUI bTitle = Title(col, "Light the bulb", 80);
+        TextMeshProUGUI bGoal = Label(col, "Connect a battery, a switch and a bulb in one loop. Then close the switch.", 46, Ink, name: "Goal");
 
         Label(col, "You'll use", 38, Muted, true);
         RectTransform chips = Row(col, "Parts", 20);
-        foreach (string p in new[] { "1 battery", "1 switch", "1 bulb", "3 wires" })
+        var chipTexts = new TextMeshProUGUI[4];
+        for (int i = 0; i < chipTexts.Length; i++)
         {
-            Image chip = CardBox(chips, p);
-            HStack(chip.gameObject, 0, Pad(30, 18), TextAnchor.MiddleCenter);
-            Label(chip.transform, p, 38, Ink, true).textWrappingMode = TextWrappingModes.NoWrap;
+            Image chip = CardBox(chips, "Chip " + (i + 1));
+            HStack(chip.gameObject, 0, Pad(26, 18), TextAnchor.MiddleCenter);
+            chipTexts[i] = Label(chip.transform, "part", 34, Ink, true);
+            chipTexts[i].textWrappingMode = TextWrappingModes.NoWrap;
         }
 
         Image learn = Box(col, "What you'll learn", SunTint);
         VStack(learn.gameObject, 8, Pad(44, 36));
         Label(learn.transform, "What you'll learn", 42, SunInk, true);
-        Label(learn.transform, "Current only flows when the path is a complete loop.", 40, SunInk);
+        TextMeshProUGUI learnText = Label(learn.transform, "Current only flows when the path is a complete loop.", 40, SunInk, name: "Learn");
 
         Spacer(col);
         Label(col, "You'll need a table and good light.", 36, Muted, align: TextAlignmentOptions.Center);
@@ -186,6 +194,12 @@ public static class LabUIBuilder
 
         var v = Add<BriefingView>(s, app);
         Set(v, "backButton", back); Set(v, "findTableButton", find);
+        Set(v, "numberText", number); Set(v, "titleText", bTitle); Set(v, "goalText", bGoal); Set(v, "learnText", learnText);
+        var bso = new UnityEditor.SerializedObject(v);
+        var chipList = bso.FindProperty("partChips");
+        chipList.arraySize = chipTexts.Length;
+        for (int i = 0; i < chipTexts.Length; i++) chipList.GetArrayElementAtIndex(i).objectReferenceValue = chipTexts[i];
+        bso.ApplyModifiedPropertiesWithoutUndo();
         return s;
     }
 
@@ -242,63 +256,64 @@ public static class LabUIBuilder
         GameObject s = FullScreen(parent, "Lab HUD", false);
         var v = Add<HudView>(s, app);
 
-        // Goal card + pause
+        // ---- Top: one compact card with the goal and the live readings, plus pause ----
         RectTransform top = Rect("Top Bar", s.transform);
-        Dock(top, true, 300, 44, 56);
-        HStack(top.gameObject, 24, Pad(0), TextAnchor.UpperLeft);
+        Dock(top, true, 0, 32, 40);
+        var th = HStack(top.gameObject, 20, Pad(0), TextAnchor.UpperLeft);
+        th.childForceExpandHeight = false;
+        top.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
         Image goal = CardBox(top, "Goal Card"); Size(goal, flexW: 1);
-        VStack(goal.gameObject, 8, Pad(40, 32));
-        TextMeshProUGUI exp = Label(goal.transform, "Experiment 1 of 5", 34, Muted, name: "Experiment");
-        TextMeshProUGUI title = Label(goal.transform, "Light the bulb", 54, Ink, true, name: "Title");
-        TextMeshProUGUI goalText = Label(goal.transform, "Connect a battery, a switch and a bulb.", 38, Ink, name: "Goal");
+        VStack(goal.gameObject, 6, Pad(36, 26));
+        TextMeshProUGUI exp = Label(goal.transform, "Experiment 1 of 5", 30, Muted, name: "Experiment");
+        TextMeshProUGUI title = Label(goal.transform, "Light the bulb", 46, Ink, true, name: "Title");
+        TextMeshProUGUI goalText = Label(goal.transform, "Connect a battery, a switch and a bulb.", 34, Ink, name: "Goal");
+        RectTransform readings = Row(goal.transform, "Readings", 14);
+        readings.GetComponent<HorizontalLayoutGroup>().padding = new RectOffset(0, 0, 10, 0);
+        TextMeshProUGUI current = Reading(readings, "Current", "0.00 A");
+        TextMeshProUGUI circuit = Reading(readings, "Circuit", "Open");
+        TextMeshProUGUI score = Reading(readings, "Score", "0");
         Button pause = RoundButton(top, "Pause Button", "II");
 
-        // Readings
-        Image readings = CardBox(s.transform, "Readings");
-        RectTransform rr = readings.rectTransform;
-        rr.anchorMin = rr.anchorMax = rr.pivot = new Vector2(1, 0);
-        rr.anchoredPosition = new Vector2(-44, 760); rr.sizeDelta = new Vector2(640, 150);
-        HStack(readings.gameObject, 40, Pad(36, 22), TextAnchor.MiddleLeft);
-        TextMeshProUGUI current = Reading(readings.transform, "Current", "0.00 A");
-        TextMeshProUGUI circuit = Reading(readings.transform, "Circuit", "Open");
-        TextMeshProUGUI score = Reading(readings.transform, "Score", "0");
+        // ---- Bottom: one row of parts, with Undo at the end ----
+        const float barHeight = 220f;
+        Image bar = BottomSheet(s.transform, "Parts Bar", barHeight);
+        var bl = HStack(bar.gameObject, 14, Pad(28, 28, 22, (int)Bleed + 22), TextAnchor.UpperCenter);
+        bl.childForceExpandWidth = true;
+        Button battery = Part(bar.transform, "Battery"); Button sw = Part(bar.transform, "Switch");
+        Button bulb = Part(bar.transform, "Bulb"); Button resistor = Part(bar.transform, "Resistor");
+        Button undo = Part(bar.transform, "Undo");
 
-        // Hint bubble
-        Image hint = CardBox(s.transform, "Hint Bubble");
+        // ---- Hint: a small dark note just above the parts bar ----
+        Image hint = Box(s.transform, "Hint Bubble", new Color(0.18f, 0.12f, 0.05f, 0.88f));
         RectTransform hr = hint.rectTransform;
-        hr.anchorMin = hr.anchorMax = new Vector2(0.5f, 0.5f); hr.pivot = new Vector2(0.5f, 0.5f);
-        hr.anchoredPosition = new Vector2(0, 560); hr.sizeDelta = new Vector2(860, 150);
-        TextMeshProUGUI hintText = Label(hint.transform, "Tap a part below, then tap the bench.", 40, Ink, name: "Hint");
-        Stretch(hintText.rectTransform); hintText.margin = new Vector4(36, 20, 36, 20);
-        hintText.alignment = TextAlignmentOptions.Center;
+        hr.anchorMin = new Vector2(0, 0); hr.anchorMax = new Vector2(1, 0); hr.pivot = new Vector2(0.5f, 0);
+        hr.sizeDelta = new Vector2(-96, 0); hr.anchoredPosition = new Vector2(0, barHeight + 24);
+        VStack(hint.gameObject, 0, Pad(32, 20), TextAnchor.MiddleCenter);
+        hint.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        TextMeshProUGUI hintText = Label(hint.transform, "Tap a part below, then tap the bench.", 32, Color.white,
+            align: TextAlignmentOptions.Center, name: "Hint");
 
-        // Parts drawer
-        Image drawer = BottomSheet(s.transform, "Parts Drawer", 560);
-        VStack(drawer.gameObject, 28, Pad(44, 44, 34, 110), TextAnchor.UpperCenter);
-        Handle(drawer.transform);
-        RectTransform dh = Row(drawer.transform, "Header", 20);
-        TextMeshProUGUI partsLabel = Label(dh, "Parts", 48, Ink, true); Size(partsLabel, flexW: 1);
-        Button undo = Button(dh, "Undo Button", "Undo", Style.Secondary, 100, 38); Size(undo, 100, 220);
-        RectTransform grid = Rect("Parts Row", drawer.transform); Size(grid, 230);
-        var gl = HStack(grid.gameObject, 20, Pad(0), TextAnchor.MiddleCenter);
-        gl.childForceExpandWidth = true; gl.childForceExpandHeight = true;
-        Button battery = Part(grid, "Battery"); Button sw = Part(grid, "Switch");
-        Button bulb = Part(grid, "Bulb"); Button resistor = Part(grid, "Resistor");
-
-        // Success sheet (hidden until an experiment is finished)
-        Image success = BottomSheet(s.transform, "Success Sheet", 900);
-        VStack(success.gameObject, 30, Pad(56, 56, 60, 120));
-        success.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        RectTransform sh = Row(success.transform, "Header", 30);
-        TextMeshProUGUI pts = Badge(sh, "Points", "+100", Mint, Color.white, 150);
+        // Well-done card (hidden until an experiment is finished). It sits at the bottom, over
+        // the parts drawer, so the finished circuit stays in view above it.
+        Image card = CardBox(s.transform, "Success Card", Card, Mint);
+        RectTransform cr = card.rectTransform;
+        cr.anchorMin = new Vector2(0, 0); cr.anchorMax = new Vector2(1, 0); cr.pivot = new Vector2(0.5f, 0);
+        cr.sizeDelta = new Vector2(-64, 0); cr.anchoredPosition = new Vector2(0, 24);
+        VStack(card.gameObject, 22, Pad(44, 40), TextAnchor.UpperCenter);
+        card.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        RectTransform sh = Row(card.transform, "Header", 28);
+        TextMeshProUGUI pts = Badge(sh, "Points", "+100", Mint, Color.white, 140);
         pts.fontSize = 44; pts.textWrappingMode = TextWrappingModes.NoWrap;
-        RectTransform st = Rect("Texts", sh); VStack(st.gameObject, 4, Pad(0)); Size(st, flexW: 1);
-        TextMeshProUGUI sTitle = Label(st, "The bulb is on!", 66, Ink, true, name: "Title");
-        TextMeshProUGUI sSub = Label(st, "Experiment complete", 38, Muted, name: "Subtitle");
-        Image why = Box(success.transform, "Why Box", SunTint);
-        VStack(why.gameObject, 0, Pad(44, 36));
-        TextMeshProUGUI sBody = Label(why.transform, "Closing the switch completed the loop, so current can flow.", 42, SunInk, name: "Body");
-        Button cont = Button(success.transform, "Continue Button", "Next experiment", Style.Primary);
+        RectTransform st = Rect("Texts", sh); VStack(st.gameObject, 2, Pad(0)); Size(st, flexW: 1);
+        TextMeshProUGUI sSub = Label(st, "Experiment 1 of 5 complete", 34, MintInk, true, name: "Subtitle");
+        TextMeshProUGUI sTitle = Label(st, "Well done!", 60, Ink, true, name: "Title");
+        Image why = Box(card.transform, "Why Box", SunTint);
+        VStack(why.gameObject, 0, Pad(36, 26));
+        TextMeshProUGUI sBody = Label(why.transform, "Closing the switch completed the loop, so current can flow.", 36, SunInk, name: "Body");
+        TextMeshProUGUI sNext = Label(card.transform, "Up next: Dim the bulb.", 34, Muted, name: "Next");
+        Button cont = Button(card.transform, "Continue Button", "Start experiment 2", Style.Primary);
+        GameObject success = card.gameObject;
 
         // Short-circuit warning (hidden until it happens)
         Image warn = CardBox(s.transform, "Warning Banner", Card, Red);
@@ -317,33 +332,46 @@ public static class LabUIBuilder
         Set(v, "scoreText", score); Set(v, "hintBubble", hint.gameObject); Set(v, "hintText", hintText);
         Set(v, "batteryButton", battery); Set(v, "switchButton", sw); Set(v, "bulbButton", bulb);
         Set(v, "resistorButton", resistor); Set(v, "undoButton", undo);
-        Set(v, "successSheet", success.gameObject); Set(v, "successTitle", sTitle); Set(v, "successBody", sBody);
+        Set(v, "successSheet", success); Set(v, "successTitle", sTitle); Set(v, "successBody", sBody); Set(v, "successNext", sNext);
         Set(v, "successSubtitle", sSub); Set(v, "successPoints", pts); Set(v, "warningPenalty", penalty);
         Set(v, "continueButton", cont); Set(v, "warningBanner", warn.gameObject); Set(v, "warningUndoButton", wUndo);
         return s;
     }
 
+    // A small chip such as "Current 0.25 A".
     static TextMeshProUGUI Reading(Transform parent, string label, string value)
     {
-        RectTransform c = Rect(label, parent); VStack(c.gameObject, 2, Pad(0));
-        Label(c, label, 30, Muted).textWrappingMode = TextWrappingModes.NoWrap;
-        TextMeshProUGUI v = Label(c, value, 44, Ink, true, name: "Value");
+        Image chip = Box(parent, label, Bg, RoundedSmall, 0.5f);
+        HStack(chip.gameObject, 10, Pad(20, 12), TextAnchor.MiddleLeft);
+        Label(chip.transform, label, 26, Muted).textWrappingMode = TextWrappingModes.NoWrap;
+        TextMeshProUGUI v = Label(chip.transform, value, 30, Ink, true, name: "Value");
         v.textWrappingMode = TextWrappingModes.NoWrap;
         return v;
     }
 
     static Button Part(Transform parent, string name)
     {
-        Image img = CardBox(parent, name + " Part", Bg);
+        bool isUndo = name == "Undo";
+        Image img = CardBox(parent, name + (isUndo ? " Button" : " Part"), isUndo ? Soft : Bg);
         var b = img.gameObject.AddComponent<UnityEngine.UI.Button>(); b.targetGraphic = img;
-        var pv = VStack(img.gameObject, 14, Pad(10, 30), TextAnchor.MiddleCenter);
+        var pv = VStack(img.gameObject, 10, Pad(6, 18), TextAnchor.MiddleCenter);
         pv.childForceExpandWidth = false;
-        Size(img, 230, 200, flexW: 1);
-        Color c = name == "Battery" ? Ink : name == "Bulb" ? Sun : name == "Switch" ? Muted : Orange;
-        Image icon = Box(img.transform, "Icon", c, name == "Bulb" ? Circle : RoundedSmall, 1f);
-        if (name == "Bulb") icon.type = Image.Type.Simple;
-        Size(icon, 80, name == "Switch" || name == "Resistor" ? 120 : 80);
-        Label(img.transform, name, 36, Ink, true, TextAlignmentOptions.Center).textWrappingMode = TextWrappingModes.NoWrap;
+        // Same width for every button: no preferred width, share the row equally.
+        LayoutElement le = Size(img, 176, flexW: 1);
+        le.preferredWidth = 0; le.minWidth = 0;
+
+        if (isUndo)
+        {
+            Label(img.transform, "\u2190", 56, Ink, true, TextAlignmentOptions.Center);   // left arrow
+        }
+        else
+        {
+            Color c = name == "Battery" ? Ink : name == "Bulb" ? Sun : name == "Switch" ? Muted : Orange;
+            Image icon = Box(img.transform, "Icon", c, name == "Bulb" ? Circle : RoundedSmall, 1f);
+            if (name == "Bulb") icon.type = Image.Type.Simple;
+            Size(icon, 56, name == "Switch" || name == "Resistor" ? 84 : 56);
+        }
+        Label(img.transform, name, 28, Ink, true, TextAlignmentOptions.Center).textWrappingMode = TextWrappingModes.NoWrap;
         return b;
     }
 
@@ -352,7 +380,7 @@ public static class LabUIBuilder
     static GameObject BuildPause(Transform parent, AppStateManager app)
     {
         GameObject s = FullScreen(parent, "Pause Screen", false);
-        var dim = s.AddComponent<Image>(); dim.color = new Color(0.1f, 0.07f, 0.03f, 0.55f);
+        FullBleed(s.transform, "Dim", new Color(0.1f, 0.07f, 0.03f, 0.55f));
 
         Image card = CardBox(s.transform, "Pause Card");
         RectTransform cr = card.rectTransform;
