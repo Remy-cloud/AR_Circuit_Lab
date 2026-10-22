@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: 5 Fix the broken circuit
   m_EditorClassIdentifier: Assembly-CSharp::ARCircuitsLab.Tasks.TaskData
   title: Fix the broken circuit
-  goal: This circuit should work, but the bulb stays dark. Find the fault and fix
-    it.
-  hint: Tap a part to check it. Press and hold a broken part to remove it, then wire
-    in a new one.
+  goal: This circuit should work, but the bulb stays dark. Find the broken part and
+    replace it.
+  hint: Tap the grey bulb to check it. Hold it to remove it, put a new bulb in its
+    spot, then wire the new bulb into the loop.
   goalType: 4
   points: 100
   parts:

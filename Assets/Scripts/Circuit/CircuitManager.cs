@@ -183,7 +183,7 @@ namespace ARCircuitsLab.Circuit
         {
             ClearSelection();
             Remove(part);
-            Message($"{part.Data.displayName} removed. Tap Undo to bring it back.");
+            Message($"{part.Data.displayName} and its wires removed. Tap Undo to bring them back.");
         }
 
         /// <summary>Press and hold a terminal: removes the wires connected to it.</summary>
@@ -227,6 +227,18 @@ namespace ARCircuitsLab.Circuit
         }
 
         public void TapNothing() => ClearSelection();
+
+        /// <summary>Tap (or hold) a wire: removes it. Undo brings it back.</summary>
+        public void TapWire(Wire wire)
+        {
+            ClearSelection();
+            var removed = new List<(TerminalRef, TerminalRef)> { (Ref(wire.A), Ref(wire.B)) };
+            wires.Remove(wire);
+            Destroy(wire.gameObject);
+            history.Push(UndoStep.WiresRemoved(removed));
+            Recalculate();
+            Message("Wire removed. Tap Undo to bring it back.");
+        }
 
         // ------------------------------------------------------------ building
 

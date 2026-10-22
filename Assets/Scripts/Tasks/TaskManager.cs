@@ -243,7 +243,7 @@ namespace ARCircuitsLab.Tasks
             {
                 p.title = "Free build";
                 p.goal = "Build any circuit you like. No points, nothing to finish.";
-                p.hint = "Tap a part, then a glowing spot. Tap two terminals to add a wire. Hold to remove.";
+                p.hint = "Tap a part, then a glowing spot. Tap two terminals to add a wire. Tap a wire to remove it.";
             }
             else
             {

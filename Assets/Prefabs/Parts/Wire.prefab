@@ -158,3 +158,4 @@ MonoBehaviour:
   segments: 14
   minArc: 0.015
   maxArc: 0.05
+  tapThickness: 0.022

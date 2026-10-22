@@ -9,7 +9,7 @@ namespace ARCircuitsLab.Circuit
 {
     /// <summary>
     /// Turns screen touches into actions on the bench:
-    /// tap = place / wire / toggle, press and hold = remove a part (or a terminal's wires).
+    /// tap = place / wire / toggle / remove a wire, press and hold = remove a part (or a terminal's wires).
     /// Only active during the simulation, and ignores touches on the UI.
     /// </summary>
     public class CircuitInput : MonoBehaviour
@@ -63,6 +63,7 @@ namespace ARCircuitsLab.Circuit
                 if ((position - pressPosition).magnitude <= maxTapMove && pressTarget != null)
                 {
                     if (pressTarget.TryGetComponent(out Terminal terminal)) circuit.HoldTerminal(terminal);
+                    else if (pressTarget.GetComponentInParent<Wire>() is Wire held) circuit.TapWire(held);
                     else if (pressTarget.GetComponentInParent<CircuitComponent>() is CircuitComponent part) circuit.HoldPart(part);
                 }
             }
@@ -80,6 +81,8 @@ namespace ARCircuitsLab.Circuit
             if (hit == null) { circuit.TapNothing(); return; }
 
             if (hit.TryGetComponent(out Terminal terminal)) { circuit.TapTerminal(terminal); return; }
+            Wire wire = hit.GetComponentInParent<Wire>();
+            if (wire != null) { circuit.TapWire(wire); return; }
             CircuitComponent part = hit.GetComponentInParent<CircuitComponent>();
             if (part != null) { circuit.TapPart(part); return; }
             BenchSlot slot = hit.GetComponentInParent<BenchSlot>();

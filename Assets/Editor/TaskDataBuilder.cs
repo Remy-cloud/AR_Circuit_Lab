@@ -52,8 +52,8 @@ public static class TaskDataBuilder
                 "In parallel, each branch gets the full battery voltage."),
 
             Make("5 Fix the broken circuit", GoalType.FixBrokenCircuit, "Fix the broken circuit",
-                "This circuit should work, but the bulb stays dark. Find the fault and fix it.",
-                "Tap a part to check it. Press and hold a broken part to remove it, then wire in a new one.",
+                "This circuit should work, but the bulb stays dark. Find the broken part and replace it.",
+                "Tap the grey bulb to check it. Hold it to remove it, put a new bulb in its spot, then wire the new bulb into the loop.",
                 "You fixed it!",
                 "The old bulb was broken, so it blocked the loop like an open switch. With a new bulb, {0:0.00} A flows again.",
                 new[] { "Ready-made circuit", "1 new bulb", "2 wires" },

@@ -15,6 +15,8 @@ namespace ARCircuitsLab.Circuit
         [SerializeField] private int segments = 14;
         [SerializeField] private float minArc = 0.015f;
         [SerializeField] private float maxArc = 0.05f;
+        [Tooltip("Thickness of the invisible tap area around the wire.")]
+        [SerializeField] private float tapThickness = 0.022f;
 
         private LineRenderer line;
         private Vector3[] path;
@@ -60,6 +62,24 @@ namespace ARCircuitsLab.Circuit
             }
             line.positionCount = path.Length;
             line.SetPositions(path);
+            BuildTapArea();
+        }
+
+        // Invisible boxes along the wire so the student can tap it.
+        // The two end pieces are left out, so taps near a terminal still reach the terminal.
+        private void BuildTapArea()
+        {
+            for (int k = transform.childCount - 1; k >= 0; k--) Destroy(transform.GetChild(k).gameObject);
+            for (int i = 2; i < path.Length - 2; i++)
+            {
+                Vector3 a = path[i - 1], b = path[i];
+                var piece = new GameObject("Tap Area");
+                piece.transform.SetParent(transform, false);
+                piece.transform.localPosition = (a + b) * 0.5f;
+                piece.transform.localRotation = Quaternion.LookRotation(b - a);
+                var box = piece.AddComponent<BoxCollider>();
+                box.size = new Vector3(tapThickness, tapThickness, Vector3.Distance(a, b) + 0.004f);
+            }
         }
     }
 }
