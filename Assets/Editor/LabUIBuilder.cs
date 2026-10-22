@@ -39,8 +39,8 @@ public static class LabUIBuilder
         {
             home = BuildHome(safe, app),
             briefing = BuildBriefing(safe, app),
-            setup = BuildSetup(safe, app, placement),
-            hud = BuildHud(safe, app),
+            setup = Dark(() => BuildSetup(safe, app, placement)),
+            hud = Dark(() => BuildHud(safe, app)),
             pause = BuildPause(safe, app),
             summary = BuildSummary(safe, app),
             history = BuildHistory(safe, app),
@@ -48,6 +48,12 @@ public static class LabUIBuilder
     }
 
     // ------------------------------------------------------------------ helpers
+
+    // Camera screens are built with the dark glass palette.
+    static GameObject Dark(System.Func<GameObject> build)
+    {
+        using (DarkGlass()) return build();
+    }
 
     static GameObject FullScreen(Transform parent, string name, bool background)
     {
@@ -97,9 +103,7 @@ public static class LabUIBuilder
         Image art = Box(hero.transform, "Illustration", SunTint);
         Size(art, 200);
         HStack(art.gameObject, 40, Pad(40), TextAnchor.MiddleCenter);
-        Image bat = Box(art.transform, "Battery", Ink, RoundedSmall, 1f); Size(bat, 110, 90);
-        Image wire = Box(art.transform, "Wire", Orange, RoundedSmall, 1f); Size(wire, 16, 300);
-        Dot(art.transform, "Bulb", Sun, 150);
+        CircuitPicture(art.transform, 130);
         Title(hero.transform, "Light up your first circuit", 66);
         Body(hero.transform, "Build real circuits on your desk with your phone's camera. No kit needed.", 40);
         Button start = Button(hero.transform, "Start Button", "Start 5 experiments", Style.Primary);
@@ -119,7 +123,7 @@ public static class LabUIBuilder
         Image bestRow = Box(col, "Best Score", MintTint);
         var best = bestRow.gameObject.AddComponent<UnityEngine.UI.Button>(); best.targetGraphic = bestRow;
         HStack(bestRow.gameObject, 28, Pad(40, 32), TextAnchor.MiddleLeft);
-        Badge(bestRow.transform, "Trophy", "1st", Mint, Color.white, 100);
+        Badge(bestRow.transform, "Trophy", "1st", Mint, Hex("04281D"), 100);
         RectTransform bestTexts = Rect("Texts", bestRow.transform); VStack(bestTexts.gameObject, 4, Pad(0)); Size(bestTexts, flexW: 1);
         Label(bestTexts, "Your best score", 36, MintInk);
         TextMeshProUGUI bestScore = Label(bestTexts, "No labs yet", 50, MintInk, true, name: "Best Score Text");
@@ -135,12 +139,26 @@ public static class LabUIBuilder
         return s;
     }
 
+    // Battery, switch and bulb icons in a row: a simple picture of a circuit.
+    static void CircuitPicture(Transform parent, float size)
+    {
+        foreach (string part in new[] { "Battery", "Switch", "Bulb" })
+        {
+            Image icon = Rect(part, parent).gameObject.AddComponent<Image>();
+            icon.sprite = Icon(part);
+            icon.color = part == "Bulb" ? Sun : part == "Switch" ? Orange : Ink;
+            icon.preserveAspect = true;
+            icon.raycastTarget = false;
+            Size(icon, size, size);
+        }
+    }
+
     static Button ExperimentRow(Transform parent, string number, string title, string tag, bool active)
     {
         Image row = CardBox(parent, "Experiment " + number, Card, active ? Sun : Border);
         var button = row.gameObject.AddComponent<UnityEngine.UI.Button>(); button.targetGraphic = row;
         HStack(row.gameObject, 26, Pad(30, 16), TextAnchor.MiddleLeft);
-        Badge(row.transform, "Number", number, active ? Sun : Soft, active ? SunInk : Muted, 76);
+        Badge(row.transform, "Number", number, active ? Sun : Soft, active ? OnSun : Muted, 76);
         TextMeshProUGUI name = Label(row.transform, title, 42, Ink, true); Size(name, flexW: 1);
         name.textWrappingMode = TextWrappingModes.NoWrap;
         Image chip = Box(row.transform, "Tag", active ? SunTint : Soft, RoundedSmall, 0.5f);
@@ -164,10 +182,7 @@ public static class LabUIBuilder
         Image art = CardBox(col, "Illustration");
         Size(art, 500);
         HStack(art.gameObject, 50, Pad(60), TextAnchor.MiddleCenter);
-        Image bat = Box(art.transform, "Battery", Ink, RoundedSmall, 1f); Size(bat, 130, 100);
-        Image sw = Box(art.transform, "Switch", Muted, RoundedSmall, 1f); Size(sw, 60, 180);
-        Image bulb = Dot(art.transform, "Bulb", Card, 150);
-        var bo = bulb.gameObject.AddComponent<Outline>(); bo.effectColor = Ink; bo.effectDistance = new Vector2(6, -6);
+        CircuitPicture(art.transform, 170);
 
         TextMeshProUGUI bTitle = Title(col, "Light the bulb", 80);
         TextMeshProUGUI bGoal = Label(col, "Connect a battery, a switch and a bulb in one loop. Then close the switch.", 46, Ink, name: "Goal");
@@ -285,7 +300,7 @@ public static class LabUIBuilder
         Button undo = Part(bar.transform, "Undo");
 
         // ---- Hint: a small dark note just above the parts bar ----
-        Image hint = Box(s.transform, "Hint Bubble", new Color(0.18f, 0.12f, 0.05f, 0.88f));
+        Image hint = Box(s.transform, "Hint Bubble", new Color(0.04f, 0.07f, 0.13f, 0.9f));
         RectTransform hr = hint.rectTransform;
         hr.anchorMin = new Vector2(0, 0); hr.anchorMax = new Vector2(1, 0); hr.pivot = new Vector2(0.5f, 0);
         hr.sizeDelta = new Vector2(-96, 0); hr.anchoredPosition = new Vector2(0, barHeight + 24);
@@ -303,7 +318,7 @@ public static class LabUIBuilder
         VStack(card.gameObject, 22, Pad(44, 40), TextAnchor.UpperCenter);
         card.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         RectTransform sh = Row(card.transform, "Header", 28);
-        TextMeshProUGUI pts = Badge(sh, "Points", "+100", Mint, Color.white, 140);
+        TextMeshProUGUI pts = Badge(sh, "Points", "+100", Mint, Hex("04281D"), 140);
         pts.fontSize = 44; pts.textWrappingMode = TextWrappingModes.NoWrap;
         RectTransform st = Rect("Texts", sh); VStack(st.gameObject, 2, Pad(0)); Size(st, flexW: 1);
         TextMeshProUGUI sSub = Label(st, "Experiment 1 of 5 complete", 34, MintInk, true, name: "Subtitle");
@@ -360,17 +375,13 @@ public static class LabUIBuilder
         LayoutElement le = Size(img, 176, flexW: 1);
         le.preferredWidth = 0; le.minWidth = 0;
 
-        if (isUndo)
-        {
-            Label(img.transform, "\u2190", 56, Ink, true, TextAlignmentOptions.Center);   // left arrow
-        }
-        else
-        {
-            Color c = name == "Battery" ? Ink : name == "Bulb" ? Sun : name == "Switch" ? Muted : Orange;
-            Image icon = Box(img.transform, "Icon", c, name == "Bulb" ? Circle : RoundedSmall, 1f);
-            if (name == "Bulb") icon.type = Image.Type.Simple;
-            Size(icon, 56, name == "Switch" || name == "Resistor" ? 84 : 56);
-        }
+        // A line icon that looks like the part (circuit-diagram style).
+        Image icon = Rect("Icon", img.transform).gameObject.AddComponent<Image>();
+        icon.sprite = Icon(name);
+        icon.color = name == "Bulb" ? Sun : Ink;
+        icon.preserveAspect = true;
+        icon.raycastTarget = false;
+        Size(icon, 76, 76);
         Label(img.transform, name, 28, Ink, true, TextAlignmentOptions.Center).textWrappingMode = TextWrappingModes.NoWrap;
         return b;
     }

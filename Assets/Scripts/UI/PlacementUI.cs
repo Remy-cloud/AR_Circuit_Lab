@@ -20,8 +20,8 @@ namespace ARCircuitsLab.UI
         [SerializeField] private Image scanStep;
         [SerializeField] private Image placeStep;
 
-        private static readonly Color StepOn = new Color(1f, 0.541f, 0.239f);   // orange
-        private static readonly Color StepOff = new Color(0.941f, 0.851f, 0.71f); // border
+        private static readonly Color StepOn = new Color(0.22f, 0.74f, 0.97f);  // sky blue
+        private static readonly Color StepOff = new Color(0.15f, 0.21f, 0.3f);  // border
 
         private void Awake()
         {

@@ -4,30 +4,69 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Small helpers that build uGUI elements in the "bright classroom" style.
+/// Small helpers that build uGUI elements in the "clean lab" style:
+/// light menus with navy text and a sky-blue accent, dark glass panels over the camera.
 /// Reference resolution is 1080 x 1920 (portrait).
 /// </summary>
 public static class UIKit
 {
     // ---- Colours ----
-    public static readonly Color Bg = Hex("FFF8EC");
-    public static readonly Color Card = Color.white;
-    public static readonly Color Border = Hex("F0D9B5");
-    public static readonly Color Soft = Hex("F7E9D2");
-    public static readonly Color Ink = Hex("3A2A12");
-    public static readonly Color Muted = Hex("7A6440");
-    public static readonly Color Orange = Hex("FF8A3D");
-    public static readonly Color OrangeEdge = Hex("D9661F");
-    public static readonly Color OnOrange = Hex("2E1500");
-    public static readonly Color Sun = Hex("FFC93C");
-    public static readonly Color SunTint = Hex("FFF1CF");
-    public static readonly Color SunInk = Hex("5A3E00");
-    public static readonly Color Mint = Hex("3CC47C");
-    public static readonly Color MintTint = Hex("E3F7EC");
-    public static readonly Color MintInk = Hex("14663D");
-    public static readonly Color Red = Hex("E5484D");
-    public static readonly Color RedTint = Hex("FDE7E7");
-    public static readonly Color RedInk = Hex("B42318");
+    // Menu screens use a light, clean palette. Screens over the camera use dark
+    // see-through "glass" panels instead (see DarkGlass below), so they read on any table.
+    public static Color Bg = Hex("F4F7FB");          // screen background
+    public static Color Card = Hex("FFFFFF");        // cards and panels
+    public static Color Border = Hex("DDE4EE");
+    public static Color Soft = Hex("EEF2F8");
+    public static Color Ink = Hex("0F1B2D");         // main text (navy)
+    public static Color Muted = Hex("5B6B82");
+    public static Color Orange = Hex("0284C7");      // primary accent (sky blue)
+    public static Color OrangeEdge = Hex("075985");
+    public static Color OnOrange = Hex("FFFFFF");    // text on the accent
+    public static Color Sun = Hex("F59E0B");         // amber: energy, highlights
+    public static Color SunTint = Hex("FEF3C7");
+    public static Color SunInk = Hex("92400E");
+    public static Color OnSun = Hex("1C1405");
+    public static Color Mint = Hex("10B981");
+    public static Color MintTint = Hex("D1FAE5");
+    public static Color MintInk = Hex("065F46");
+    public static Color Red = Hex("EF4444");
+    public static Color RedTint = Hex("FEE2E2");
+    public static Color RedInk = Hex("991B1B");
+    public static Color OnRed = Hex("FFFFFF");
+
+    /// <summary>
+    /// Switches to the dark glass palette while building camera screens:
+    /// using (UIKit.DarkGlass()) { ... }  — the light palette comes back afterwards.
+    /// </summary>
+    public static System.IDisposable DarkGlass() => new PaletteScope();
+
+    sealed class PaletteScope : System.IDisposable
+    {
+        readonly Color[] saved;
+
+        public PaletteScope()
+        {
+            saved = new[] { Bg, Card, Border, Soft, Ink, Muted, SunTint, SunInk, MintTint, MintInk, RedTint, RedInk };
+            Bg = new Color(1f, 1f, 1f, 0.06f);
+            Card = new Color(0.05f, 0.08f, 0.14f, 0.86f);
+            Border = new Color(1f, 1f, 1f, 0.12f);
+            Soft = new Color(1f, 1f, 1f, 0.08f);
+            Ink = Hex("EEF3FA");
+            Muted = Hex("9FB0C6");
+            SunTint = new Color(0.96f, 0.62f, 0.04f, 0.16f);
+            SunInk = Hex("FCD58A");
+            MintTint = new Color(0.06f, 0.73f, 0.51f, 0.16f);
+            MintInk = Hex("6EE7B7");
+            RedTint = new Color(0.94f, 0.27f, 0.27f, 0.18f);
+            RedInk = Hex("FCA5A5");
+        }
+
+        public void Dispose()
+        {
+            Bg = saved[0]; Card = saved[1]; Border = saved[2]; Soft = saved[3]; Ink = saved[4]; Muted = saved[5];
+            SunTint = saved[6]; SunInk = saved[7]; MintTint = saved[8]; MintInk = saved[9]; RedTint = saved[10]; RedInk = saved[11];
+        }
+    }
 
     public enum Style { Primary, Secondary, Danger }
 
@@ -43,6 +82,7 @@ public static class UIKit
     public static Sprite Rounded => rounded ??= LoadSprite("Assets/UI/Sprites/rounded_24.png", 24);
     public static Sprite RoundedSmall => roundedSmall ??= LoadSprite("Assets/UI/Sprites/rounded_12.png", 12);
     public static Sprite Circle => circle ??= LoadSprite("Assets/UI/Sprites/circle.png", 0);
+    public static Sprite Icon(string name) => LoadSprite($"Assets/UI/Icons/{name}.png", 0);
 
     static Sprite LoadSprite(string path, int border)
     {
@@ -128,7 +168,7 @@ public static class UIKit
         return img;
     }
 
-    /// <summary>A white card with a soft beige outline.</summary>
+    /// <summary>A card with a thin outline.</summary>
     public static Image CardBox(Transform parent, string name, Color? fill = null, Color? outline = null)
     {
         var img = Box(parent, name, fill ?? Card);
@@ -154,7 +194,7 @@ public static class UIKit
     public static Button Button(Transform parent, string name, string label, Style style, float height = 160f, float fontSize = 50f)
     {
         Color fill = style switch { Style.Primary => Orange, Style.Danger => Red, _ => Card };
-        Color text = style switch { Style.Primary => OnOrange, Style.Danger => Color.white, _ => Ink };
+        Color text = style switch { Style.Primary => OnOrange, Style.Danger => OnRed, _ => Ink };
 
         var img = Box(parent, name, fill);
         if (style == Style.Secondary)
@@ -166,7 +206,7 @@ public static class UIKit
         {
             // The darker "edge" under the button makes it look pressable.
             var s = img.gameObject.AddComponent<Shadow>();
-            s.effectColor = style == Style.Primary ? OrangeEdge : RedInk;
+            s.effectColor = style == Style.Primary ? OrangeEdge : Hex("B91C1C");
             s.effectDistance = new Vector2(0, -10);
         }
         var b = img.gameObject.AddComponent<UnityEngine.UI.Button>();

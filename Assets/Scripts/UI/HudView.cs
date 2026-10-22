@@ -32,8 +32,8 @@ namespace ARCircuitsLab.UI
         [SerializeField] private Button bulbButton;
         [SerializeField] private Button resistorButton;
         [SerializeField] private Button undoButton;
-        [SerializeField] private Color selectedFill = new Color(1f, 0.945f, 0.81f);
-        [SerializeField] private Color selectedEdge = new Color(1f, 0.54f, 0.24f);
+        [SerializeField] private Color selectedFill = new Color(0.06f, 0.2f, 0.29f);   // dark sky blue
+        [SerializeField] private Color selectedEdge = new Color(0.22f, 0.74f, 0.97f);  // sky blue
 
         [Header("Feedback")]
         [SerializeField] private GameObject successSheet;
