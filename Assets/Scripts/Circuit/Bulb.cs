@@ -9,6 +9,8 @@ namespace ARCircuitsLab.Circuit
         private static readonly int EmissionId = Shader.PropertyToID("_EmissionColor");
 
         [SerializeField] private Renderer glass;
+        [Tooltip("Which material of the renderer is the glass (-1 = all of them).")]
+        [SerializeField] private int glassMaterialIndex = -1;
         [SerializeField] private Light glow;
         [SerializeField] private Color offColor = new Color(0.92f, 0.92f, 0.88f);
         [SerializeField] private Color onColor = new Color(1f, 0.85f, 0.35f);
@@ -49,10 +51,12 @@ namespace ARCircuitsLab.Circuit
         {
             if (glass == null) return;
             Color body = !IsWorking ? brokenColor : Color.Lerp(offColor, onColor, brightness);
-            glass.GetPropertyBlock(block);
+            if (glassMaterialIndex >= 0) glass.GetPropertyBlock(block, glassMaterialIndex);
+            else glass.GetPropertyBlock(block);
             block.SetColor(BaseColorId, body);
             block.SetColor(EmissionId, onColor * (brightness * 2.5f));
-            glass.SetPropertyBlock(block);
+            if (glassMaterialIndex >= 0) glass.SetPropertyBlock(block, glassMaterialIndex);
+            else glass.SetPropertyBlock(block);
 
             if (glow != null)
             {

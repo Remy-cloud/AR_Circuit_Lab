@@ -63,28 +63,56 @@ public static class PartPrefabBuilder
     static void BuildSwitch(ComponentData data)
     {
         var root = new GameObject("Switch");
-        Cube(root, "Base", new Vector3(0, 0.006f, 0), new Vector3(0.08f, 0.012f, 0.04f), Lit("Switch Base", Hex("7A6440")));
-        Cube(root, "Contact", new Vector3(0.026f, 0.015f, 0), new Vector3(0.008f, 0.008f, 0.014f), Metal());
-        var pivot = new GameObject("Lever Pivot");
-        pivot.transform.SetParent(root.transform, false);
-        pivot.transform.localPosition = new Vector3(-0.026f, 0.018f, 0);
-        Cube(pivot, "Lever", new Vector3(0.026f, 0, 0), new Vector3(0.054f, 0.006f, 0.012f), Metal());
-        Cube(pivot, "Handle", new Vector3(0.05f, 0.006f, 0), new Vector3(0.008f, 0.014f, 0.02f), Lit("Switch Handle", Hex("FF8A3D")));
-        AddBox(root, new Vector3(0, 0.018f, 0), new Vector3(0.07f, 0.036f, 0.04f));
-        Terminal a = MakeTerminal(root, "Terminal A", new Vector3(-0.045f, 0.012f, 0), Metal());
-        Terminal b = MakeTerminal(root, "Terminal B", new Vector3(0.045f, 0.012f, 0), Metal());
+
+        // Downloaded rocker-switch model, scaled to about 8 cm long.
+        const float scale = 0.05f;
+        GameObject model = Model("Assets/Models/Switch/Switch.fbx", root, "Switch Model");
+        model.transform.localScale = Vector3.one * scale;
+        model.transform.localPosition = new Vector3(0f, 0.38f * scale, 0f);   // sit on the bench
+        foreach (Renderer r in model.GetComponentsInChildren<Renderer>())
+        {
+            var mats = r.sharedMaterials;
+            for (int i = 0; i < mats.Length; i++) mats[i] = SwitchMaterial(mats[i] != null ? mats[i].name : "");
+            r.sharedMaterials = mats;
+        }
+
+        // The red rocker turns on a pivot so the switch visibly flips on and off.
+        Transform rocker = model.transform.Find("Cube.007");
+        var pivot = new GameObject("Lever Pivot").transform;
+        pivot.SetParent(model.transform, false);
+        pivot.localPosition = rocker.localPosition;
+        rocker.SetParent(pivot, true);
+
+        AddBox(root, new Vector3(0, 0.015f, 0), new Vector3(0.085f, 0.03f, 0.04f));
+        Terminal a = MakeTerminal(root, "Terminal A", new Vector3(-0.047f, 0.012f, 0), Metal());
+        Terminal b = MakeTerminal(root, "Terminal B", new Vector3(0.047f, 0.012f, 0), Metal());
         var c = root.AddComponent<Switch>();
         Setup(c, data, a, b);
-        Set(c, "lever", pivot.transform);
+        Set(c, "lever", pivot);
+        SetFloat(c, "openAngle", 12f);
+        SetFloat(c, "closedAngle", -12f);
         Save(root, "Switch");
+    }
+
+    static Material SwitchMaterial(string original)
+    {
+        if (original.StartsWith("Material.023")) return Lit("Switch Rocker", Hex("D93A3A"), 0.5f);
+        if (original.StartsWith("Material.022") || original.StartsWith("Material.024")) return Lit("Switch Marks", Hex("D7DCE3"), 0.4f);
+        return Lit("Switch Body", Hex("1E2430"), 0.45f);
     }
 
     static void BuildBulb(ComponentData data)
     {
         var root = new GameObject("Bulb");
-        Cube(root, "Base", new Vector3(0, 0.006f, 0), new Vector3(0.07f, 0.012f, 0.035f), Lit("Bulb Base", Hex("7A6440")));
-        Shape(root, PrimitiveType.Cylinder, "Socket", new Vector3(0, 0.02f, 0), new Vector3(0.022f, 0.008f, 0.022f), Metal());
-        Renderer glass = Shape(root, PrimitiveType.Sphere, "Glass", new Vector3(0, 0.046f, 0), Vector3.one * 0.045f, Glass());
+        Cube(root, "Holder", new Vector3(0, 0.006f, 0), new Vector3(0.07f, 0.012f, 0.035f), Lit("Bulb Holder", Hex("2B3445")));
+
+        // Downloaded bulb model (real size 6 x 10 cm), scaled down to stand about 5.5 cm tall.
+        const float scale = 0.55f;
+        GameObject model = Model("Assets/Models/Bulb/Bulb.fbx", root, "Bulb Model");
+        model.transform.localScale *= scale;
+        model.transform.localPosition = new Vector3(0f, 0.012f + 0.0168f * scale, 0f);
+        Renderer glass = model.GetComponentInChildren<Renderer>();
+        glass.sharedMaterials = new[] { BulbGlass(), BulbMetal() };   // submesh 0 = glass, 1 = screw base
 
         var lightGo = new GameObject("Glow");
         lightGo.transform.SetParent(root.transform, false);
@@ -104,7 +132,68 @@ public static class PartPrefabBuilder
         Setup(c, data, a, b);
         Set(c, "glass", glass);
         Set(c, "glow", light);
+        SetInt(c, "glassMaterialIndex", 0);
+        SetColor(c, "offColor", new Color(0.95f, 0.95f, 0.92f, 0.35f));
+        SetColor(c, "onColor", new Color(1f, 0.85f, 0.35f, 0.9f));
+        SetColor(c, "brokenColor", new Color(0.22f, 0.22f, 0.22f, 0.8f));
         Save(root, "Bulb");
+    }
+
+    static Material BulbGlass()
+    {
+        Material m = GetMaterial("Bulb Glass", "Universal Render Pipeline/Lit", Color.white, 0.92f);
+        m.SetFloat("_Surface", 1f);
+        m.SetFloat("_Blend", 0f);
+        m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
+        m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
+        m.SetFloat("_ZWrite", 0f);
+        m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        m.SetOverrideTag("RenderType", "Transparent");
+        m.renderQueue = (int)RenderQueue.Transparent;
+        m.EnableKeyword("_EMISSION");
+        m.SetTexture("_EmissionMap", BulbTexture("bulb_emissive.jpg", false));
+        m.SetColor("_EmissionColor", Color.black);
+        m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+        EditorUtility.SetDirty(m);
+        return m;
+    }
+
+    static Material BulbMetal()
+    {
+        Material m = GetMaterial("Bulb Metal", "Universal Render Pipeline/Lit", Color.white, 0.55f);
+        m.SetTexture("_BaseMap", BulbTexture("bulb_diff.jpg", false));
+        m.SetTexture("_BumpMap", BulbTexture("bulb_nor_gl.jpg", true));
+        m.EnableKeyword("_NORMALMAP");
+        m.SetFloat("_Metallic", 0.85f);
+        EditorUtility.SetDirty(m);
+        return m;
+    }
+
+    // The downloaded textures are 4K; 1K is plenty on a phone.
+    static Texture2D BulbTexture(string file, bool normal)
+    {
+        string path = "Assets/Models/Bulb/" + file;
+        var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+        importer.maxTextureSize = 1024;
+        importer.textureType = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
+        importer.SaveAndReimport();
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+    }
+
+    static GameObject Model(string path, GameObject parent, string name)
+    {
+        var importer = (ModelImporter)AssetImporter.GetAtPath(path);
+        if (importer.importCameras || importer.importLights)
+        {
+            importer.importCameras = false;   // models can hide cameras that take over the AR view
+            importer.importLights = false;
+            importer.SaveAndReimport();
+        }
+        GameObject go = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(path));
+        go.name = name;
+        go.transform.SetParent(parent.transform, false);
+        foreach (Collider col in go.GetComponentsInChildren<Collider>()) Object.DestroyImmediate(col);
+        return go;
     }
 
     static void BuildResistor(ComponentData data)
@@ -217,6 +306,27 @@ public static class PartPrefabBuilder
         box.size = size;
     }
 
+    static void SetFloat(Object target, string field, float value)
+    {
+        var so = new SerializedObject(target);
+        so.FindProperty(field).floatValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    static void SetInt(Object target, string field, int value)
+    {
+        var so = new SerializedObject(target);
+        so.FindProperty(field).intValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    static void SetColor(Object target, string field, Color value)
+    {
+        var so = new SerializedObject(target);
+        so.FindProperty(field).colorValue = value;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
     static void Set(Object target, string field, Object value)
     {
         var so = new SerializedObject(target);
@@ -250,16 +360,6 @@ public static class PartPrefabBuilder
     }
 
     static Material Metal() => Lit("Metal", Hex("C9CED6"), 0.8f);
-
-    static Material Glass()
-    {
-        Material m = Lit("Bulb Glass", Hex("EBEBE0"), 0.6f);
-        m.EnableKeyword("_EMISSION");
-        m.SetColor("_EmissionColor", Color.black);
-        m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
-        EditorUtility.SetDirty(m);
-        return m;
-    }
 
     static Material Lit(string name, Color color, float smoothness = 0.3f) =>
         GetMaterial(name, "Universal Render Pipeline/Lit", color, smoothness);

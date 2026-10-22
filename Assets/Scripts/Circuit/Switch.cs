@@ -7,6 +7,7 @@ namespace ARCircuitsLab.Circuit
     {
         [SerializeField] private Transform lever;
         [SerializeField] private float openAngle = 35f;
+        [SerializeField] private float closedAngle = 0f;
         [SerializeField] private bool isOn;
 
         public bool IsOn => isOn;
@@ -29,7 +30,7 @@ namespace ARCircuitsLab.Circuit
 
         private void UpdateLever()
         {
-            if (lever != null) lever.localRotation = Quaternion.Euler(0f, 0f, isOn ? 0f : openAngle);
+            if (lever != null) lever.localRotation = Quaternion.Euler(0f, 0f, isOn ? closedAngle : openAngle);
         }
     }
 }
