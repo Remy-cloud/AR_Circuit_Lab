@@ -12,6 +12,7 @@ public static class ProjectSetup
     const string BundleId = "com.remy.arcircuitslab";
     const string CameraText = "Used to place the circuit lab on your table";
     const string AppleTeamId = "6G2ZXGK743";   // Personal Team, so Xcode signs every new build
+    const string IconPath = "Assets/UI/AppIcon/AppIcon.png";
 
     static ProjectSetup()
     {
@@ -34,6 +35,12 @@ public static class ProjectSetup
 
         if (PlayerSettings.iOS.appleDeveloperTeamID != AppleTeamId)
         { PlayerSettings.iOS.appleDeveloperTeamID = AppleTeamId; changed = true; }
+
+        // App icon: one 1024 x 1024 image; Unity makes every size the iPhone needs from it.
+        var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(IconPath);
+        Texture2D[] icons = PlayerSettings.GetIcons(NamedBuildTarget.Unknown, IconKind.Any);
+        if (icon != null && (icons.Length == 0 || icons[0] != icon))
+        { PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any); changed = true; }
 
         if (PlayerSettings.defaultInterfaceOrientation != UIOrientation.Portrait)
         { PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait; changed = true; }
